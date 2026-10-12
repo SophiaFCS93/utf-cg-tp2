@@ -1,0 +1,36 @@
+/* IDEIA DE DIORAMA: AQUÁRIO */
+
+
+
+/*************************************************************************
+         1- CORPO INICIAL DO TP2 - COM A IMAGEM QUE FIZ PARA O FUNDO
+**************************************************************************/
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-image: url("./assets/images/fundo_onda_mar2.png");
+    /*background-image: url("./assets/images/fundo_onda_mar.png");*/
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 90vh;
+} 
+
+canvas {
+    width: 800px;
+    height: 600px;
+    border: 2px solid #2f5f8f;
+    background-color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+} /* FIM*/
+
+
+/*************************************************************************
+        2- IMAGEM QUE FIZ PARA SER O TÍTULO DO TP2 
+**************************************************************************/
+.titulo {
+    width: 350px; /* largura */
+    max-width: 90%; /* máximo da largura disponível */
+    height: auto; /* mantém a proporção da imagem*/
+} /* FIM*/
