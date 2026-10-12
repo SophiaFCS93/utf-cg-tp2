@@ -1,4 +1,5 @@
 //IDEIA DE DIORAMA: AQUÁRIO  
+
 /**************************************************************************
 COMO ESTOU PENSANDO ESSE TRABALHO INICIALMENTE? 
 ***************************************************************************
@@ -45,26 +46,14 @@ ONDE CONSEGUIR AS COISAS?
 → ONDE PEGAR ASSETS EM 3D COM A TEMÁTICA OCEANO/AQUÁRIO: 
 1- https://poly.pizza/bundle/Coral-Reef-Kit-ghN8EmbYa6 
 2- https://poly.pizza/search/reefs
-3- https://poly.pizza/search/Marine%20Life 
-4- 
-5- 
+3- https://poly.pizza/search/Marine%20Life  
  
 
  → A IDEIA É TER UM CHÃO DE AREIA
 1- Criar o chão com WebGL: utilizar um cilindro bem achatado ou um disco circular e aplicar uma textura de areia.
 2- Importar um modelo 3D: baixar um fundo de areia já modelado com o formato adequado.
+
 */
-
-
-
-
-
-
-
-
-
-
-
 
 
 //SOMENTE INICIALIZANDO O WEBGL2, PINTANDO O CANVAS DE AZUL PARA TERMOS UM CORPO INCIAL
