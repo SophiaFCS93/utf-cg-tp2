@@ -6,10 +6,6 @@
 const canvas = document.querySelector("#canvas");
 const gl = canvas.getContext("webgl2");
 
-gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight); // Define a área de renderização
-gl.clearColor(0.75, 0.88, 0.96, 1.0); //Define a cor de fundo do canvas como um azul bem clarinho e pastel
-gl.clear(gl.COLOR_BUFFER_BIT); // Limpa o canvas com a cor definida 
-
 
 /****************************************************************************************************************
 PARTE 1 - Construir o chão circular de areia sobre o qual ficarão as pedras, algas, conchas e outros 
@@ -71,21 +67,13 @@ function criarChaoCircular(raio, segmentos) {
         const angulo1 = i * 2 * Math.PI / segmentos;
         const angulo2 = (i + 1) * 2 * Math.PI / segmentos;
 
-        // Centro do círculo
-        vertices.push(0, 0, 0);
+        vertices.push(0, 0, 0); // Centro do círculo
 
         // Segundo ponto da borda
-        vertices.push(
-            raio * Math.cos(angulo2),
-            0,
-            raio * Math.sin(angulo2)
-        );
+        vertices.push( raio * Math.cos(angulo2), 0,raio * Math.sin(angulo2));
 
-        // Primeiro ponto da borda
-        vertices.push(
-            raio * Math.cos(angulo1),
-            0,
-            raio * Math.sin(angulo1)
+        //Primeiro ponto da borda
+        vertices.push( raio * Math.cos(angulo1), 0, raio * Math.sin(angulo1)
         );
     }
 
@@ -93,7 +81,7 @@ function criarChaoCircular(raio, segmentos) {
 }
 
 
-/* PARTE 2 → */
+/* PARTE 2 */
 function criarHemisferioInferior(raio, segmentos, divisoes) {
     const vertices = [];
 
@@ -145,7 +133,7 @@ const bufferInfo = twgl.createBufferInfoFromArrays(gl, {
     }
 });
 
-/* PARTE 2 → */
+/* PARTE 2 */
 const verticesHemisferio = criarHemisferioInferior(3, 64, 16);// Cria os vértices do hemisfério inferior
 
 const bufferHemisferio = twgl.createBufferInfoFromArrays(gl, {
@@ -160,9 +148,44 @@ const bufferHemisferio = twgl.createBufferInfoFromArrays(gl, {
 // Habilitando a comparação de profundidade | permite que objetos mais próximos ocultem superfícies mais distante 
 gl.enable(gl.DEPTH_TEST);
 
-function desenharCena() {
-    twgl.resizeCanvasToDisplaySize(canvas);
+
+/* PARTE 3 */
+//CAMERA AUTOMÁTICA  ↓
+let cameraAtiva = 1; // 1 = câmera automática | 2 = câmera orbital
+let anguloCamera = 0; // Ângulo da câmera ao redor do aquário
+let distanciaCamera = 10; // Distância da câmera ao centro
+const velocidadeCamera = 0.3; // Velocidade da rotação em radianos por segundo
+let tempoAnterior = 0; // Tempo do quadro anterior
+
+//CAMERA ORBITAL  ↓
+let anguloHorizontal = 0;
+let anguloVertical = Math.PI / 4;
+let arrastandoMouse = false;
+let mouseAnteriorX = 0;
+let mouseAnteriorY = 0;
+const sensibilidadeMouse = 0.005;
+/*FIM*/
+
+
+/* PARTE 4*/
+// Guarda o buffer da concha após o carregamento
+let bufferConcha = null;
+
+//(tempoAtual = 0) Recebe o tempo fornecido pelo requestAnimationFrame para calcular a movimentação da câmera
+function desenharCena(tempoAtual = 0) {
+    /*PARTE 3 */
+    // Calcula quanto tempo passou desde o último quadro
+    const deltaTime = tempoAnterior === 0
+        ? 0
+        : (tempoAtual - tempoAnterior) / 1000;
+
+    tempoAnterior = tempoAtual;
     
+    if (cameraAtiva === 1) {
+    anguloCamera += velocidadeCamera * deltaTime;
+    } /*FIM*/
+
+    twgl.resizeCanvasToDisplaySize(canvas);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clearColor(0.75, 0.88, 0.96, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -177,22 +200,38 @@ function desenharCena() {
         100 //plano distante
     );
 
-    // POSIÇÃO DA CÂMERA
-    const posicaoCamera = [5, 5, 7];
+//PARTE 3
+//JÁ MUDEI 500X
+//POSIÇÃO DA CÂMERA ATIVA
+let posicaoCamera;
+
+if (cameraAtiva === 1) {
+    // Câmera 1: gira automaticamente a 45 graus
+    const inclinacao = Math.PI / 4;
+
+    posicaoCamera = [
+        distanciaCamera * Math.cos(inclinacao) * Math.sin(anguloCamera),
+        distanciaCamera * Math.sin(inclinacao),
+        distanciaCamera * Math.cos(inclinacao) * Math.cos(anguloCamera)
+    ];
+
+} else {
+    // Câmera 2: posição controlada pelo mouse
+    posicaoCamera = [
+        distanciaCamera * Math.cos(anguloVertical) * Math.sin(anguloHorizontal),
+        distanciaCamera * Math.sin(anguloVertical),
+        distanciaCamera * Math.cos(anguloVertical) * Math.cos(anguloHorizontal)
+    ];
+} /*FIM*/
+
+
+    // A câmera sempre olha para o centro do diorama
     const alvo = [0, 0, 0];
     const cima = [0, 1, 0];
-    const camera = twgl.m4.lookAt(posicaoCamera,alvo,cima);
-    const visualizacao = twgl.m4.inverse(camera);
+    const camera = twgl.m4.lookAt(posicaoCamera, alvo, cima); // Cria a matriz da câmera na posição calculada
+    const visualizacao = twgl.m4.inverse(camera);// Converte a matriz da câmera em matriz de visualização
+    const matriz = twgl.m4.multiply(projecao, visualizacao);// Combina projeção e visualização
 
-    // Combina projeção e visualização
-    /*const matriz = twgl.m4.multiply(projecao,visualizacao); // multiplica as matrizes projeção e visualização
-    gl.useProgram(programInfo.program); // ativa o programa WebGL
-    twgl.setBuffersAndAttributes(gl,programInfo,bufferInfo); // configura os buffers com as posições dos vértices
-    twgl.setUniforms(programInfo, {u_matrix: matriz});// envie a matriz que calculamos no JavaScript para a variável u_matrix do shader para calcular a posição final dos vértices
-    twgl.drawBufferInfo(gl, bufferInfo);  // desenha os triângulos*/
-    
-    // COMBINA PROJEÇÃO E VISUALIZAÇÃO PARA DOIS OBJETOS 3D INDEPENDENTES: CHÃO E HEMISFÉRIO INFERIOR DA POKEBOLA
-    const matriz = twgl.m4.multiply(projecao,visualizacao); // multiplica as matrizes projeção e visualização
     gl.useProgram(programInfo.program);// Ativa o programa WebGL
     twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);   // Desenha o chão circular
     twgl.setUniforms(programInfo, {u_matrix: matriz, u_color: [0.87, 0.76, 0.57, 1.0] });// Areia bege
@@ -200,19 +239,224 @@ function desenharCena() {
 
     twgl.setBuffersAndAttributes(gl, programInfo, bufferHemisferio);// Desenha o hemisfério inferior
     twgl.setUniforms(programInfo, { u_matrix: matriz, u_color: [0.15, 0.45, 0.65, 1.0] });// Azul
-    twgl.drawBufferInfo(gl, bufferHemisferio);
-}
+    twgl.drawBufferInfo(gl, bufferHemisferio); 
 
-desenharCena();
+    /*PARTE 4 CONCHA*/
+        if (bufferConcha !== null) {
+
+    // Cria a matriz de modelagem da concha
+    let modeloConcha = twgl.m4.identity();
+
+    // Posiciona a concha sobre a areia, fora do centro
+    modeloConcha = twgl.m4.translate(modeloConcha,[1.5, 0.08, 0]);
+
+    // Rotaciona a concha em 90 graus no eixo Z  para deixá-la deitada,já que originalmente está em pé
+    modeloConcha = twgl.m4.rotateZ(modeloConcha, Math.PI / 2);
+
+    // Mantém a escala atual
+    modeloConcha = twgl.m4.scale(modeloConcha,[8, 8, 8] // talvez mudar para 10, deixar maior? 
+    );
+
+        // Combina as matrizes da cena com a da concha
+        const matrizConcha = twgl.m4.multiply(matriz,modeloConcha);
+
+        // Configura o buffer da concha
+        twgl.setBuffersAndAttributes(gl,programInfo,bufferConcha
+        );
+
+        // Define a posição e a cor temporária
+        twgl.setUniforms(programInfo, {
+            u_matrix: matrizConcha,
+            /*u_color: [0.95, 0.45, 0.55, 1.0] *///rosa
+            u_color: [0.60, 0.38, 0.23, 1.0]
+        });
+
+        // Desenha os triângulos da concha
+        twgl.drawBufferInfo(gl, bufferConcha);
+    } /*FIM*/
+
+    requestAnimationFrame(desenharCena); // Solicita o próximo quadro da animação
+}
+requestAnimationFrame(desenharCena);
+
+
+/* PARTE 3 - ALTERNANDO ENTRE AS CÂMERAS*/ 
+// Alterna entre as câmeras usando as teclas 1 e 2
+window.addEventListener("keydown", function(evento) {
+
+    if (evento.key === "1") {
+        cameraAtiva = 1;
+        console.log("Câmera 1 - Automática");
+    }
+
+    if (evento.key === "2") {
+        cameraAtiva = 2;
+        console.log("Câmera 2 - Orbital");
+    }
+}); /* FIM*/ 
+
+
+/* PARTE 3 - CONTROLANDO A CÂMERA 2 COM O MOUSE*/ 
+// Inicia o movimento quando pressionamos o mouse
+canvas.addEventListener("pointerdown", function(evento) {
+    if (cameraAtiva !== 2) return;
+
+    arrastandoMouse = true;
+    mouseAnteriorX = evento.clientX;
+    mouseAnteriorY = evento.clientY;
+    canvas.setPointerCapture(evento.pointerId);
+});
+
+// Movimenta a câmera enquanto arrastamos o mouse
+canvas.addEventListener("pointermove", function(evento) {
+    if (cameraAtiva !== 2 || !arrastandoMouse) return;
+
+    // Calcula quanto o mouse se movimentou
+    const movimentoX = evento.clientX - mouseAnteriorX;
+    const movimentoY = evento.clientY - mouseAnteriorY;
+
+    // Atualiza os ângulos da câmera
+    anguloHorizontal -= movimentoX * sensibilidadeMouse;
+    anguloVertical += movimentoY * sensibilidadeMouse;
+
+    // Impede que a câmera fique exatamente sobre os polos
+    anguloVertical = Math.max(
+        -Math.PI / 2 + 0.01,
+        Math.min(Math.PI / 2 - 0.01, anguloVertical)
+    );
+
+    // Atualiza a posição anterior do mouse
+    mouseAnteriorX = evento.clientX;
+    mouseAnteriorY = evento.clientY;
+});
+
+function pararArraste() {arrastandoMouse = false;} // Encerra o movimento quando soltamos o mouse
+
+canvas.addEventListener("pointerup", pararArraste);
+canvas.addEventListener("pointercancel", pararArraste);
+/* FIM*/
+
 
 /************************************************************************
 PARTE 3 - Implementar as duas câmeras
 *************************************************************************/
+/*Câmera:
+• Use projeção perspectiva
+• Deve haver 2 câmeras e o usuário pode alternar entre elas via as teclas 1 e 2:
+1. Visão a ~45º acima do chão olhando para o centro do diorama e rotacionando sua posição ao longo do tempo. 
+   O scroll do mouse deve aproximar ou distanciar a câmera do alvo
+2. Câmera orbital controlada pelo movimento do mouse co↑m o alvo fixo no centro do diorama*/
+
+/*CÂMERA 1 AUTOMÁTICA*/
+// Aproxima ou afasta a câmera usando o scroll do mouse
+// DEU CERTO +-
+canvas.addEventListener("wheel", function(evento) {
+    evento.preventDefault();
+
+    distanciaCamera += evento.deltaY * 0.01;
+
+    // Limita a distância para não entrar no aquário,  acho legal ver apenas de forma aproximada
+    distanciaCamera = Math.max(6,  Math.min(20, distanciaCamera));
+}, { passive: false });
+
 
 
 /************************************************************************
 PARTE 4 - Adicionar os objetos 3D
-*************************************************************************/
+// *************************************************************************/ 
+//OBJ POIUS GLTF DÁ MUITO TRABALHO, NUUU
+
+
+/* OBJETO 1: CONCHA*/
+// Caminho do arquivo da concha
+const caminhoConcha = "assets/models/concha/TurretShell.obj";
+
+// Carrega o conteúdo do OBJ
+async function carregarConcha() {
+    const resposta = await fetch(caminhoConcha);
+
+    if (!resposta.ok) {
+        console.error("Erro ao carregar a concha!");
+        return;
+    }
+
+    // OBJ é um arquivo de texto
+    const conteudoOBJ = await resposta.text();
+    console.log("Concha carregada com sucesso!");
+    console.log("Início do arquivo:", conteudoOBJ.slice(0, 300));
+
+        // Divide o conteúdo do OBJ em linhas
+    const linhas = conteudoOBJ.split(/\r?\n/);
+
+    // Guarda as coordenadas dos vértices
+    const vertices = []; 
+
+    // Guarda os índices dos vértices que formam as faces
+    const indices = [];
+
+    // Percorre todas as linhas do arquivo
+    for (const linha of linhas) {
+
+        // Identifica as linhas que começam com "v "
+        if (linha.startsWith("v ")) {
+
+            // Separa os valores da linha
+            const valores = linha.trim().split(/\s+/);
+
+            // Converte as coordenadas para números
+            const x = parseFloat(valores[1]);
+            const y = parseFloat(valores[2]);
+            const z = parseFloat(valores[3]);
+
+            // Guarda as coordenadas do vértice
+            vertices.push(x, y, z);
+        }
+
+        
+        // Identifica as linhas que representam faces
+        if (linha.startsWith("f ")) {
+
+            // Separa os elementos da face
+            const valores = linha.trim().split(/\s+/);
+
+            // Percorre os três vértices do triângulo
+            for (let i = 1; i <= 3; i++) {
+
+                // Exemplo: "12/8/5" -> "12"
+                const indiceVertice = valores[i].split("/")[0];
+
+                // OBJ começa em 1; WebGL começa em 0
+                indices.push(parseInt(indiceVertice, 10) - 1);
+            }
+
+            
+        }
+
+    }
+
+    console.log("Quantidade de vértices:", vertices.length / 3);
+    console.log("Primeiras coordenadas:", vertices.slice(0, 12));
+    console.log("Quantidade de índices:", indices.length);
+    console.log("Quantidade de triângulos:", indices.length / 3);
+    console.log("Primeiros índices:", indices.slice(0, 12));
+
+
+    // Cria o buffer da concha para o WebGL
+    bufferConcha = twgl.createBufferInfoFromArrays(gl, {
+        a_position: {
+            numComponents: 3,
+            data: vertices
+        },
+        indices: new Uint16Array(indices)
+    });
+
+console.log("Buffer da concha criado!", bufferConcha);
+}
+carregarConcha();
+
+
+
+
 
 
 /************************************************************************
