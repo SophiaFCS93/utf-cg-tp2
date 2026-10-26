@@ -29,6 +29,9 @@ https://www.fab.com/listings/15a15d83-737b-4361-8ff9-a215c83a5607
 https://www.fab.com/listings/6339b958-9535-40ef-baaf-37d6bcaf4950 
 
 
+# NDE PEGUEI OS OBJETOS "LOW POLY":
+https://poly.pizza/search/Sea%20Life
+
 
 # ONDE CONSEGUIR AS COISAS?
 → INSPIRAÇÃO: 
