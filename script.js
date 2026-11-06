@@ -27,8 +27,8 @@ Quanto maior a quantidade de segmentos e divisões, mais arredondado e suave ser
 Aqui, usamos 64 × 16 × 2 = 2.048 triângulos gerados.*/
 
 
-// VERTEX SHADER
-const vertexShader = `#version 300 es
+// VERTEX SHADER UMA UNICA COR
+/*const vertexShader = `#version 300 es
     in vec4 a_position;
 
     uniform mat4 u_matrix;
@@ -36,12 +36,25 @@ const vertexShader = `#version 300 es
     void main() {
         gl_Position = u_matrix * a_position;
     }
+`;*/ 
+//PARA MULTICOLORIDO
+const vertexShader = `#version 300 es
+    in vec4 a_position;
+    in float a_shade; // Tonalidade de cada vértice
+
+    uniform mat4 u_matrix;
+
+    out float v_shade; // Envia a tonalidade ao Fragment Shader
+
+    void main() {
+        gl_Position = u_matrix * a_position;
+        v_shade = a_shade;
+    }
 `;
 
-// FRAGMENT SHADER 
-// Antes: Cor bege representando a areia → corFinal = vec4(0.87, 0.76, 0.57, 1.0);
-// Agora: o JS pode enviar uma cor diferente para cada objeto | FLEXIBILIZAÇÃO 
-const fragmentShader = `#version 300 es
+
+// FRAGMENT SHADER PRA UMA COR
+/*const fragmentShader = `#version 300 es
     precision highp float;
 
     uniform vec4 u_color; 
@@ -51,7 +64,23 @@ const fragmentShader = `#version 300 es
     void main() {
         corFinal = u_color;
     }
+`;*/ 
+//PARA MAIS DE UMA COR
+const fragmentShader = `#version 300 es
+    precision highp float;
+
+    uniform vec4 u_color;
+
+    in float v_shade;
+
+    out vec4 outColor;
+
+    void main() {
+        float tonalidade = v_shade > 0.0 ? v_shade : 1.0;
+        outColor = vec4(u_color.rgb * tonalidade, u_color.a);
+    }
 `;
+
 
 // Cria o programa WebGL
 const programInfo = twgl.createProgramInfo(gl, [vertexShader,fragmentShader]);
@@ -79,6 +108,12 @@ function criarChaoCircular(raio, segmentos) {
 
     return vertices;
 }
+
+/* TEXTURA DE AREIA NO CHÃO*/
+//const caminhoAreia = "assets/texturas/areia.jpg";
+
+
+
 
 
 /* PARTE 2 */
@@ -248,6 +283,7 @@ if (cameraAtiva === 1) {
     if (bufferConcha !== null) {
         let modeloConcha = twgl.m4.identity(); // Cria a matriz de modelagem da concha
         modeloConcha = twgl.m4.translate(modeloConcha,[1.5, 0.08, 0]); // Posiciona a concha sobre a areia, fora do centro           
+        modeloConcha = twgl.m4.rotateY(modeloConcha, -Math.PI / 2); // Gira 90 graus
         modeloConcha = twgl.m4.rotateZ(modeloConcha, Math.PI / 2); // Rotaciona a concha em 90 graus no eixo Z  para deixá-la deitada,já que originalmente está em pé
         modeloConcha = twgl.m4.scale(modeloConcha,[12, 12, 12] );// Mantém a escala atual| deixei o maior que gostei
         const matrizConcha = twgl.m4.multiply(matriz,modeloConcha); // Combina as matrizes da cena com a da concha       
@@ -261,6 +297,11 @@ if (cameraAtiva === 1) {
         });
 
         twgl.drawBufferInfo(gl, bufferConcha); // Desenha os triângulos da concha
+
+        const localTonalidade = gl.getAttribLocation(programInfo.program, "a_shade");
+        gl.disableVertexAttribArray(localTonalidade);
+        gl.vertexAttrib1f(localTonalidade, 0.0);
+
     } /*FIM*/
 
         
@@ -296,10 +337,11 @@ if (cameraAtiva === 1) {
     }
     
 
+
     /*PARTE 4 - ESTRELA DO MAR - CONJUNTO */ 
     if (bufferEstrela !== null) {
         let modeloEstrela = twgl.m4.identity();
-        modeloEstrela = twgl.m4.translate( modeloEstrela, [-0.6, 0.03, 0.8]); // Posiciona o conjunto das estrelas sobre a areia
+        modeloEstrela = twgl.m4.translate( modeloEstrela, [0.5, 0.03, 0.8]); // Posiciona o conjunto das estrelas sobre a areia
         modeloEstrela = twgl.m4.scale(modeloEstrela,[0.18, 0.18, 0.18]); // Reduz o conjunto para caber melhor no diorama
         const matrizEstrela = twgl.m4.multiply( matriz, modeloEstrela); // Combina a matriz da câmera com a matriz do objeto
 
@@ -319,6 +361,9 @@ if (cameraAtiva === 1) {
         
         twgl.drawBufferInfo(gl, bufferEstrela); // Desenha as estrelas
 }
+
+
+
 
     /*PARTE 4 - OURIÇOS */
     if (bufferOurico !== null) {
@@ -359,9 +404,9 @@ if (cameraAtiva === 1) {
     if (bufferBolacha !== null) {
 
         let modeloBolacha = twgl.m4.identity();
-        modeloBolacha = twgl.m4.translate( modeloBolacha,  [0.0, 0.03, 1.8] );  // Posiciona a bolacha-do-mar sobre a areia
-        modeloBolacha = twgl.m4.scale( modeloBolacha, [0.014, 0.014, 0.014] ); // Reduz o tamanho original do objeto
-        const matrizBolacha = twgl.m4.multiply( matriz, modeloBolacha); // Reduz o tamanho original do objeto
+        modeloBolacha = twgl.m4.translate( modeloBolacha,  [0.8, 0.03, 1.8] ); 
+        modeloBolacha = twgl.m4.scale( modeloBolacha, [0.014, 0.014, 0.014] );
+        const matrizBolacha = twgl.m4.multiply( matriz, modeloBolacha);
         twgl.setBuffersAndAttributes( gl, programInfo, bufferBolacha);
 
         // Define a matriz e a cor bege-clara
@@ -378,30 +423,55 @@ if (cameraAtiva === 1) {
 
 
     /*PARTE 4 - CORAIS */ 
-    if (bufferCoral !== null) {
-
+    if (bufferCoral !== null) { 
         let modeloCoral = twgl.m4.identity();
-        modeloCoral = twgl.m4.translate( modeloCoral,  [0.50, 0.05, -1.5] );
+        modeloCoral = twgl.m4.translate( modeloCoral,  [-0.7, 0.03, 1.8] );
         modeloCoral = twgl.m4.scale( modeloCoral, [0.18, 0.18, 0.18] );
-        modeloCoral = twgl.m4.translate( modeloCoral,[75.49, -1.10, -0.65]); // Corrige o deslocamento original do arquivo OBJ.
+        modeloCoral = twgl.m4.translate( modeloCoral,[75.49, -1.10, -0.65]);
         const matrizCoral = twgl.m4.multiply( matriz, modeloCoral );
         twgl.setBuffersAndAttributes( gl, programInfo, bufferCoral );
         
         twgl.setUniforms(programInfo, {
             u_matrix: matrizCoral,
-            //u_color: [0.91, 0.47, 0.58, 1.0] // rosa clarinho
             u_color: [0.72, 0.23, 0.44, 1.0]
         });
 
         twgl.drawBufferInfo(gl, bufferCoral);
     }
 
+    
+    /*PARTE 4 - CORAIS 2*/
+    if (bufferKelp5 !== null) {
 
+        // Define a posição e o tamanho de cada coral
+        const kelp = [
+            { posicao: [0.50, 0.05, -1.5], escala: 0.45 },  // Coral 1 - maior
+            { posicao: [-1.0, 0.07, 0.6], escala: 0.30 },  // Coral 2 - menor
+            //{ posicao: [-1.8, 0.05, -0.5], escala: 0.12 }  // Coral 3 - menor
+        ];
 
+        twgl.setBuffersAndAttributes(gl, programInfo, bufferKelp5);
 
+        for (const coral of kelp) {
+            let modeloKelp5 = twgl.m4.identity(); 
+            modeloKelp5 = twgl.m4.translate(modeloKelp5, coral.posicao);
+            modeloKelp5 = twgl.m4.scale(modeloKelp5, [coral.escala, coral.escala, coral.escala]);
+            const matrizKelp5 = twgl.m4.multiply(matriz, modeloKelp5);
+            
+            twgl.setUniforms(programInfo, { 
+                u_matrix: matrizKelp5, 
+                u_color: [0.91, 0.36, 0.29, 1.0] 
+            });
+
+            twgl.drawBufferInfo(gl, bufferKelp5); // Desenha o coral
+        }
+    }
+  
     requestAnimationFrame(desenharCena); // Solicita o próximo quadro da animação
 }
+
 requestAnimationFrame(desenharCena);
+
 
 
 /* PARTE 3 - ALTERNANDO ENTRE AS CÂMERAS*/ 
@@ -583,7 +653,7 @@ async function carregarConcha() {
     // numComponents: 3 → Cada vértice tem três coordenadas: X, Y e Z
     // data: vertices → // Coordenadas lidas do arquivo OBJ
 
-    bufferConcha = twgl.createBufferInfoFromArrays(gl, {
+   /* bufferConcha = twgl.createBufferInfoFromArrays(gl, {
         a_position: {
             numComponents: 3,        
             data: vertices
@@ -591,7 +661,42 @@ async function carregarConcha() {
         indices: new Uint16Array(indices)  // Índices que definem os triângulos do modelo
     });
     
-    console.log("Buffer da concha criado!", bufferConcha); // Confirma que o buffer foi criado
+    console.log("Buffer da concha criado!", bufferConcha); // Confirma que o buffer foi criado*/
+
+    // Define as quatro intensidades de marrom
+    const tonalidades = [0.65, 0.85, 1.0, 1.20];
+
+    // Cria os arrays que serão enviados para a GPU
+    const verticesConcha = [];
+    const coresConcha = [];
+
+    // Percorre os triângulos do modelo
+    for (let i = 0; i < indices.length; i += 3) {
+
+        // Escolhe uma tonalidade para o triângulo
+        const tom = tonalidades[(i / 3) % tonalidades.length];
+
+        // Percorre os três vértices do triângulo
+        for (let j = 0; j < 3; j++) {
+
+            const indice = indices[i + j] * 3;
+
+            verticesConcha.push(vertices[indice], vertices[indice + 1], vertices[indice + 2]); // Copia a posição
+            coresConcha.push(tom); // Aplica a mesma tonalidade aos três vértices
+        }
+    }
+
+    // Cria o buffer da concha com posições e tonalidades
+    bufferConcha = twgl.createBufferInfoFromArrays(gl, {
+        a_position: { numComponents: 3, data: verticesConcha },
+        a_shade: { numComponents: 1, data: coresConcha }
+    });
+
+    console.log("Concha carregada com várias tonalidades!");
+    console.log("Triângulos:", indices.length / 3);
+
+
+
 
 } // FIM DA FUNÇÃO carregarConcha()
 
@@ -846,7 +951,7 @@ carregarBolacha();
 
 
 
-/* ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓   CORAIS    ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ */
+/* ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓   CORAIS  1  ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ */
 const caminhoCoral = "assets/models/coral/Coraal.obj";
 let bufferCoral = null; 
 
@@ -902,6 +1007,96 @@ async function carregarCoral() {
     console.log("Buffer do coral criado!", bufferCoral);
 }
 carregarCoral();
+
+
+
+
+/* ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓   CORAIS 2    ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ */
+const caminhoKelp5 = "assets/models/coral/kelp5.obj";
+let bufferKelp5 = null;
+
+async function carregarKelp5() {
+    const resposta = await fetch(caminhoKelp5);
+
+    if (!resposta.ok) {
+        console.error("Erro ao carregar o Kelp 5!");
+        return;
+    }
+
+    const conteudoOBJ = await resposta.text();
+    const linhas = conteudoOBJ.split(/\r?\n/);
+    const vertices = [];
+    const indices = [];
+
+    for (const linha of linhas) {
+
+        if (linha.startsWith("v ")) {
+            const valores = linha.trim().split(/\s+/);
+            const x = parseFloat(valores[1]);
+            const y = parseFloat(valores[2]);
+            const z = parseFloat(valores[3]);
+            vertices.push(x, y, z);
+        }
+
+        if (linha.startsWith("f ")) {
+            const valores = linha.trim().split(/\s+/);
+            const indicesFace = [];
+
+            for (let i = 1; i < valores.length; i++) {
+                const indiceVertice = valores[i].split("/")[0];
+                indicesFace.push(parseInt(indiceVertice, 10) - 1);
+            }
+
+            for (let i = 1; i < indicesFace.length - 1; i++) {
+                indices.push(indicesFace[0], indicesFace[i], indicesFace[i + 1]);
+            }
+        }
+    }
+
+    // Encontra os limites do modelo original
+    let minX = Infinity, maxX = -Infinity;
+    let minY = Infinity;
+    let minZ = Infinity, maxZ = -Infinity;
+
+    for (let i = 0; i < vertices.length; i += 3) {
+        minX = Math.min(minX, vertices[i]);
+        maxX = Math.max(maxX, vertices[i]);
+        minY = Math.min(minY, vertices[i + 1]);
+        minZ = Math.min(minZ, vertices[i + 2]);
+        maxZ = Math.max(maxZ, vertices[i + 2]);
+    }
+
+    // Centraliza o modelo e coloca sua base em Y = 0
+    const centroX = (minX + maxX) / 2;
+    const centroZ = (minZ + maxZ) / 2;
+
+    for (let i = 0; i < vertices.length; i += 3) {
+        vertices[i] -= centroX;
+        vertices[i + 1] -= minY;
+        vertices[i + 2] -= centroZ;
+    }
+
+
+    bufferKelp5 = twgl.createBufferInfoFromArrays(gl, {
+        a_position: { numComponents: 3, data: vertices },
+        indices: new Uint16Array(indices)
+    });
+
+    console.log("Kelp 5 carregado com sucesso!");
+    console.log("Vértices:", vertices.length / 3);
+    console.log("Triângulos:", indices.length / 3);
+    console.log("Buffer do Kelp 5 criado!", bufferKelp5);
+}
+carregarKelp5();
+
+
+
+
+/* ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓   PEDRAS   ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ */
+
+
+
+
 
 
 
