@@ -83,7 +83,54 @@ const fragmentShader = `#version 300 es
 
 
 // Cria o programa WebGL
-const programInfo = twgl.createProgramInfo(gl, [vertexShader,fragmentShader]);
+const programInfo = twgl.createProgramInfo(gl, [vertexShader,fragmentShader]); 
+
+
+/* PARTE 1 - SHADERS PARA A TEXTURA DO CHÃO */
+// Vertex Shader da areia
+// in vec2 a_texcoord → Recebe duas coordenadas por vértice: u e v. Elas representam posições na imagem
+// out vec2 v_texcoord → Envia as coordenadas ↑ para o Fragment Shader
+
+const vertexShaderAreia = `#version 300 es
+    in vec4 a_position;
+    in vec2 a_texcoord;
+
+    uniform mat4 u_matrix;
+
+    out vec2 v_texcoord;
+
+    void main() {
+        gl_Position = u_matrix * a_position;
+        v_texcoord = a_texcoord;
+    }
+`;
+
+// Fragment Shader da areia
+const fragmentShaderAreia = `#version 300 es
+    precision highp float;
+
+    in vec2 v_texcoord;
+
+    uniform sampler2D u_textura;
+
+    out vec4 corFinal;
+
+    void main() {
+        vec4 corAreia = texture(u_textura, v_texcoord); // Lê a cor original da imagem
+
+        vec3 areiaClara = vec3(0.90, 0.82, 0.68); // Bege-claro
+
+        vec3 corAjustada = mix(corAreia.rgb, areiaClara, 0.45); // Mistura 35% de bege
+
+        corFinal = vec4(corAjustada, corAreia.a); // Aplica a cor final
+    }
+`;
+
+// Cria um programa exclusivo para desenhar a areia
+const programInfoAreia = twgl.createProgramInfo(gl, [vertexShaderAreia, fragmentShaderAreia]);
+/*FIM*/ 
+
+
 
 // Cria os vértices do chão circular
 // Raio: define o tamanho do chão
@@ -110,7 +157,16 @@ function criarChaoCircular(raio, segmentos) {
 }
 
 /* TEXTURA DE AREIA NO CHÃO*/
-//const caminhoAreia = "assets/texturas/areia.jpg";
+const caminhoAreia = "assets/textures/areia.jpg";
+
+// Carrega a imagem da areia para uma textura WebGL
+const texturaAreia = twgl.createTexture(gl, {
+    src: caminhoAreia,
+    flipY: true, //inverte verticalmente a imagem ao carregá-la
+    min: gl.LINEAR_MIPMAP_LINEAR, // define como a textura é filtrada quando aparece menor
+    mag: gl.LINEAR, // define como a textura é filtrada quando aparece maior
+    wrap: gl.CLAMP_TO_EDGE // define o comportamento nas bordas da imagem
+});
 
 
 
@@ -157,16 +213,43 @@ function criarHemisferioInferior(raio, segmentos, divisoes) {
     return vertices;
 } /* FIM*/
 
-// Chão com raio 3 e 64 triângulos = 192 posições de vértices ( quanto maior, melhor) | AUMENTA MAIS?
-const verticesChao = criarChaoCircular(3, 64);
 
-// Envia os vértices para a GPU
+
+/* PARTE 1 - CRIA O CHÃO COM COORDENADAS DE TEXTURA */
+const verticesChao = criarChaoCircular(3, 64); // mantém o círculo original
+const coordenadasTextura = []; // guarda as coordenadas UV
+
+// Percorre os vértices do chão
+for (let i = 0; i < verticesChao.length; i += 3) {
+
+    const x = verticesChao[i]; // Coordenada X do vértice
+    const z = verticesChao[i + 2]; // Coordenada Z do vértice
+
+    const u = (x + 3) / 6; // Converte X para U
+    const v = (z + 3) / 6; // Converte Z para V
+
+    coordenadasTextura.push(u, v); // Guarda as coordenadas UV
+}
+
+// Cria o buffer do chão com posições e coordenadas UV
 const bufferInfo = twgl.createBufferInfoFromArrays(gl, {
-    a_position: {
-        numComponents: 3,
-        data: verticesChao
-    }
+    a_position: { numComponents: 3, data: verticesChao },
+    a_texcoord: { numComponents: 2, data: coordenadasTextura }
 });
+/*fim*/
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* PARTE 2 */
 const verticesHemisferio = criarHemisferioInferior(3, 64, 16);// Cria os vértices do hemisfério inferior
@@ -207,6 +290,7 @@ const sensibilidadeMouse = 0.005;
 let bufferConcha = null;
 
 
+
 //(tempoAtual = 0) Recebe o tempo fornecido pelo requestAnimationFrame para calcular a movimentação da câmera
 function desenharCena(tempoAtual = 0) {
     /*PARTE 3 */
@@ -236,7 +320,8 @@ function desenharCena(tempoAtual = 0) {
         100 //plano distante
     );
 
-//PARTE 3
+
+    //PARTE 3
 //JÁ MUDEI 500X
 //POSIÇÃO DA CÂMERA ATIVA
 let posicaoCamera;
@@ -261,6 +346,7 @@ if (cameraAtiva === 1) {
 } /*FIM*/
 
 
+
     // A câmera sempre olha para o centro do diorama
     const alvo = [0, 0, 0];
     const cima = [0, 1, 0];
@@ -268,14 +354,27 @@ if (cameraAtiva === 1) {
     const visualizacao = twgl.m4.inverse(camera);// Converte a matriz da câmera em matriz de visualização
     const matriz = twgl.m4.multiply(projecao, visualizacao);// Combina projeção e visualização
 
-    gl.useProgram(programInfo.program);// Ativa o programa WebGL
-    twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);   // Desenha o chão circular
-    twgl.setUniforms(programInfo, {u_matrix: matriz, u_color: [0.87, 0.76, 0.57, 1.0] });// Areia bege
-    twgl.drawBufferInfo(gl, bufferInfo);
+    gl.useProgram(programInfoAreia.program); // Ativa o programa da areia
+    twgl.setBuffersAndAttributes(gl, programInfoAreia, bufferInfo); // Ativa o buffer do chão
+    twgl.setUniforms(programInfoAreia, { u_matrix: matriz, u_textura: texturaAreia }); // Aplica a imagem
+    twgl.drawBufferInfo(gl, bufferInfo); // Desenha o chão texturizado
 
-    twgl.setBuffersAndAttributes(gl, programInfo, bufferHemisferio);// Desenha o hemisfério inferior
-    twgl.setUniforms(programInfo, { u_matrix: matriz, u_color: [0.15, 0.45, 0.65, 1.0] });// Azul
-    twgl.drawBufferInfo(gl, bufferHemisferio); 
+    
+    /* PARTE 2 - HEMISFÉRIO INFERIOR */
+    // PRECISEI DE AJUDA PARA DAR CERTO!!! 
+    gl.useProgram(programInfo.program); // Ativa o programa original
+    twgl.setBuffersAndAttributes(gl, programInfo, bufferHemisferio); // Ativa o buffer do hemisfério
+
+    // Impede que as tonalidades da concha afetem o hemisfério
+    const localTonalidadeHemisferio = gl.getAttribLocation(programInfo.program, "a_shade");
+
+    if (localTonalidadeHemisferio !== -1) {
+        gl.disableVertexAttribArray(localTonalidadeHemisferio);
+        gl.vertexAttrib1f(localTonalidadeHemisferio, 1.0);
+    }
+
+    twgl.setUniforms(programInfo, { u_matrix: matriz, u_color: [0.15, 0.45, 0.65, 1.0] }); // Azul original
+    twgl.drawBufferInfo(gl, bufferHemisferio);
 
     
     
@@ -292,7 +391,6 @@ if (cameraAtiva === 1) {
         // Define a posição e a cor temporária
         twgl.setUniforms(programInfo, {
             u_matrix: matrizConcha,
-            /*u_color: [0.95, 0.45, 0.55, 1.0] *///rosa
             u_color: [0.60, 0.38, 0.23, 1.0]//marrom
         });
 
@@ -355,8 +453,8 @@ if (cameraAtiva === 1) {
         // Define a matriz e uma cor alaranjada
         twgl.setUniforms(programInfo, {
             u_matrix: matrizEstrela,
-            //u_color: [0.92, 0.56, 0.33, 1.0] // cor das estrelas
-            u_color: [1.0, 0.45, 0.0, 1.0]
+            u_color: [0.80, 0.35, 0.05, 1.0]
+           
         });
         
         twgl.drawBufferInfo(gl, bufferEstrela); // Desenha as estrelas
@@ -401,7 +499,7 @@ if (cameraAtiva === 1) {
 
     
     /*PARTE 4 - BOLACHA DO MAR */ 
-    if (bufferBolacha !== null) {
+    if (bufferBolacha !== null) { 
 
         let modeloBolacha = twgl.m4.identity();
         modeloBolacha = twgl.m4.translate( modeloBolacha,  [0.8, 0.03, 1.8] ); 
@@ -412,8 +510,7 @@ if (cameraAtiva === 1) {
         // Define a matriz e a cor bege-clara
         twgl.setUniforms(programInfo, {
             u_matrix: matrizBolacha,
-            //u_color: [0.91, 0.85, 0.72, 1.0] //begezinho
-            u_color: [0.97, 0.94, 0.86, 1.0]// branco-marfim
+            u_color: [0.91, 0.85, 0.72, 1.0] //begezinho
         });
 
           twgl.drawBufferInfo(gl, bufferBolacha);
@@ -423,20 +520,26 @@ if (cameraAtiva === 1) {
 
 
     /*PARTE 4 - CORAIS */ 
-    if (bufferCoral !== null) { 
-        let modeloCoral = twgl.m4.identity();
-        modeloCoral = twgl.m4.translate( modeloCoral,  [-0.7, 0.03, 1.8] );
-        modeloCoral = twgl.m4.scale( modeloCoral, [0.18, 0.18, 0.18] );
-        modeloCoral = twgl.m4.translate( modeloCoral,[75.49, -1.10, -0.65]);
-        const matrizCoral = twgl.m4.multiply( matriz, modeloCoral );
-        twgl.setBuffersAndAttributes( gl, programInfo, bufferCoral );
-        
-        twgl.setUniforms(programInfo, {
-            u_matrix: matrizCoral,
-            u_color: [0.72, 0.23, 0.44, 1.0]
-        });
+    if (bufferCoral !== null) {  
 
-        twgl.drawBufferInfo(gl, bufferCoral);
+        const corais = [
+            { posicao: [-0.7, 0.03, 1.8], escala: 0.18, cor: [0.68, 0.16, 0.36, 1.0] }, // Coral rosa
+            { posicao: [-0.3, 0.03, -0.7], escala: 0.14, cor: [0.56, 0.35, 0.70, 1.0] }  // Coral amarelo
+        ];
+    
+        twgl.setBuffersAndAttributes( gl, programInfo, bufferCoral ); 
+
+            for (const coral of corais) {
+
+            let modeloCoral = twgl.m4.identity(); // Cria a matriz de modelagem
+            modeloCoral = twgl.m4.translate(modeloCoral, coral.posicao); // Posiciona o coral
+            modeloCoral = twgl.m4.scale(modeloCoral, [coral.escala, coral.escala, coral.escala]); // Define o tamanho
+            modeloCoral = twgl.m4.translate(modeloCoral, [75.49, -1.10, -0.65]); // Corrige as coordenadas do OBJ
+            const matrizCoral = twgl.m4.multiply(matriz, modeloCoral); // Combina as matrizes
+            twgl.setUniforms(programInfo, { u_matrix: matrizCoral, u_color: coral.cor }); // Aplica a cor individual
+            twgl.drawBufferInfo(gl, bufferCoral); // Desenha o coral
+        }        
+
     }
 
     
@@ -460,7 +563,8 @@ if (cameraAtiva === 1) {
             
             twgl.setUniforms(programInfo, { 
                 u_matrix: matrizKelp5, 
-                u_color: [0.91, 0.36, 0.29, 1.0] 
+                //u_color: [0.91, 0.36, 0.29, 1.0] 
+                u_color: [0.72, 0.24, 0.22, 1.0] // Vermelho terracota
             });
 
             twgl.drawBufferInfo(gl, bufferKelp5); // Desenha o coral
