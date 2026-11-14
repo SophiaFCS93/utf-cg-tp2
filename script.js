@@ -615,11 +615,11 @@ requestAnimationFrame(desenharCena);
 
 
 /*********************************************************************
-                CAMERAS 1 E 2 - PARTE 3
+                EVENTOS: CAMERAS 1 E 2, TECLA P
  *********************************************************************/ 
+//PARTE 3 - ALTERNANDO ENTRE AS CÂMERAS →  Alterna entre as câmeras usando as teclas 1 e 2
+//PARTE 5 - TECLA P PARA ALTERNAR ENTRE 3 POSIÇÕES
 
-/* PARTE 3 - ALTERNANDO ENTRE AS CÂMERAS*/ 
-// Alterna entre as câmeras usando as teclas 1 e 2
 window.addEventListener("keydown", function(evento) {
 
     if (evento.key === "1") {
@@ -630,6 +630,10 @@ window.addEventListener("keydown", function(evento) {
     if (evento.key === "2") {
         cameraAtiva = 2;
         console.log("Câmera 2 - Orbital");
+    }
+
+    if (evento.key.toLowerCase() === "p" && !evento.repeat) {
+        peixe.alternarPosicao();
     }
 }); /* FIM*/ 
 
@@ -1239,16 +1243,24 @@ PARTE 5 - Adicionar o personagem
 // O PEIXE TEM VÁRIAS CORES
 //SEGUE O ARQUIVO "PEIXE.JS"
 
+/*O PEIXE VAI TER QUE VARIAS EM 3 POSIÇÕES QUANDO A TECLA P FOR PRESSIONADA.
+  A IDEIA INICIAL É: 
+    1. Próximo à parte frontal da cúpula.
+    2. Escondido entre as algas.
+    3. Descansando sobre a areia.
+*/ 
+
+/* O CONTROLE DAS POSIÇÕES ESTÁ NO EVENTO KEYDOWN QUE IDENTIFICA AS TECLAS 1 E 2.
+VOU APRIVEITAR ESSE EVENTO PARA O TRATAMENTO DA TECLA P!!*/ 
 
 
-/***************************************************************************************************************************
-PARTE 6 - Fechar a cúpula e implementar opcionais: semiesfera, transparente, que permitirá enxergar os elementos internos.
-**************************************************************************************************************************/
-//
 
 
-
-
+/********************************************************************************
+PARTE 6 - Fechar a cúpula e implementar opcionais: semiesfera, transparente, 
+que permitirá enxergar os elementos internos.
+********************************************************************************/
+//FECHAMOS A CULPULA NA FUNÇÃO "DESENHARCENA"
 
 
 

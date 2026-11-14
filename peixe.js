@@ -6,11 +6,52 @@ class Peixe {
     constructor(gl, programInfo) {
         this.gl = gl; // Contexto WebGL2
         this.programInfo = programInfo; // Programa de shaders do diorama
-
-        this.posicao = [0.0, 1.2, 0.0]; // Posição inicial
+        
+        //AQUI SERIA PARA UMA UNICA POSIÇÃO MAS O PEIXINHO TEM QUE FICAR NA PISIÇÃO INICIAL E MAIS 3 
+        //this.posicao = [0.0, 1.2, 0.0]; // Posição inicial
         //this.escala = 0.85; // Tamanho inicial
-        this.escala = 1.0; // Tamanho inicial
-        this.rotacao = 0; // Rotação em torno do eixo Y
+        //this.escala = 1.0; // Tamanho inicial
+        // this.rotacao = 0; // Rotação em torno do eixo Y 
+        this.escala = 0.95; // Tamanho inicial
+
+        //POSIÇÕES ALTERNATIVAS DO PERSONAGEM
+        //A e rotacaoY faz o peixe virar horizontalmente
+        //A rotacaoZ faz o corpo ficar inclinado
+        this.posicoes = [
+            {
+                nome: "Posição inicial",
+                posicao: [0.0, 1.2, 0.0],
+                rotacaoY: 0,
+                rotacaoZ: 0
+            },
+            {
+                nome: "Curioso",
+                posicao: [0.0, 1.2, 1.5],
+                rotacaoY: -3 * Math.PI / 4,
+                rotacaoX: Math.PI / 12, // Inclinação de 20°
+                rotacaoZ: 0
+            },
+            {
+                nome: "Escondido nas algas",
+                posicao: [-0.8, 0.85, -1.4],
+                rotacaoY: Math.PI / 2,
+                rotacaoZ: 0
+            },
+            {
+                nome: "Descansando na areia",
+                posicao: [1.8, 0.5, 1.0],
+                rotacaoY: 0,
+                rotacaoZ: -Math.PI / 50
+            }
+        ];
+
+        
+        
+        this.posicaoAtual = 0;
+        this.posicao = [...this.posicoes[0].posicao];
+        this.rotacao = this.posicoes[0].rotacaoY;
+        this.inclinacao = this.posicoes[0].rotacaoZ;
+        this.inclinacaoX = this.posicoes[0].rotacaoX || 0;
 
         this.buffers = []; // Guarda os buffers das partes do peixe
         this.carregado = false; // Indica se o modelo foi carregado
@@ -105,8 +146,8 @@ class Peixe {
                 }
             }
 
-            /* ETAPA 3 - ENCONTRAR O CENTRO DO PEIXE */
 
+            /* ETAPA 3 - ENCONTRAR O CENTRO DO PEIXE */
             let minX = Infinity, maxX = -Infinity;
             let minY = Infinity, maxY = -Infinity;
             let minZ = Infinity, maxZ = -Infinity;
@@ -124,8 +165,9 @@ class Peixe {
             const centroY = (minY + maxY) / 2;
             const centroZ = (minZ + maxZ) / 2;
 
-            /* ETAPA 4 - CRIAR OS BUFFERS DOS MATERIAIS */
 
+
+            /* ETAPA 4 - CRIAR OS BUFFERS DOS MATERIAIS */
             this.buffers = [];
 
             for (const nomeMaterial in grupos) {
@@ -161,29 +203,50 @@ class Peixe {
         }
     }
 
-    /* ATUALIZA O PERSONAGEM */
 
+    /* ATUALIZA O PERSONAGEM */
     atualizar(deltaTime) {
         // Futuramente, colocaremos a animação do peixe aqui
     }
 
-    /* DESENHA O PEIXE NO DIORAMA */
+    
+    
+    /* ALTERNA ENTRE AS TRÊS POSIÇÕES DO PEIXE */
+    // COM AJUDA! operador % faz a alternância funcionar continuamente! Assim dá certo!
+    alternarPosicao() {
+        this.posicaoAtual = (this.posicaoAtual + 1) % this.posicoes.length;
+        const novaPosicao = this.posicoes[this.posicaoAtual];
+        this.posicao = [...novaPosicao.posicao];
+        this.rotacao = novaPosicao.rotacaoY;
+        this.inclinacao = novaPosicao.rotacaoZ;
+        console.log("Posição do peixe:", novaPosicao.nome);
+        this.inclinacaoX = novaPosicao.rotacaoX || 0;
+    }
 
+
+
+    /* DESENHA O PEIXE NO DIORAMA */
     desenhar(matriz) {
 
         if (!this.carregado) return; // Aguarda o carregamento
-
-        let modeloPeixe = twgl.m4.identity(); // Cria a matriz de modelagem
-        modeloPeixe = twgl.m4.translate(modeloPeixe, this.posicao); // Posiciona o peixe
-        modeloPeixe = twgl.m4.rotateY(modeloPeixe, this.rotacao); // Rotaciona o peixe
-        modeloPeixe = twgl.m4.scale(modeloPeixe, [this.escala, this.escala, this.escala]); // Define o tamanho
-
+        //let modeloPeixe = twgl.m4.identity(); // Cria a matriz de modelagem
+        //modeloPeixe = twgl.m4.translate(modeloPeixe, this.posicao); // Posiciona o peixe
+        //modeloPeixe = twgl.m4.rotateY(modeloPeixe, this.rotacao); // Rotaciona o peixe
+        //modeloPeixe = twgl.m4.scale(modeloPeixe, [this.escala, this.escala, this.escala]); // Define o tamanho
+        let modeloPeixe = twgl.m4.identity();
+        //modeloPeixe = twgl.m4.translate(modeloPeixe, this.posicao); // Posiciona o peixe
+        //modeloPeixe = twgl.m4.rotateY(modeloPeixe, this.rotacao); // Rotaciona horizontalmente
+        //modeloPeixe = twgl.m4.rotateZ(modeloPeixe, this.inclinacao); // Inclina o corpo
+        //modeloPeixe = twgl.m4.scale(modeloPeixe, [this.escala, this.escala, this.escala]); // Define o tamanho
+        modeloPeixe = twgl.m4.translate(modeloPeixe, this.posicao);
+        modeloPeixe = twgl.m4.rotateY(modeloPeixe, this.rotacao);
+        modeloPeixe = twgl.m4.rotateX(modeloPeixe, this.inclinacaoX);
+        modeloPeixe = twgl.m4.rotateZ(modeloPeixe, this.inclinacao);
+        modeloPeixe = twgl.m4.scale(modeloPeixe, [this.escala, this.escala, this.escala]);
+        
         const matrizPeixe = twgl.m4.multiply(matriz, modeloPeixe); // Combina as matrizes
-
-        this.gl.useProgram(this.programInfo.program); // Ativa o shader original
-
-        // Impede que as tonalidades da concha afetem o peixe
-        const localTonalidade = this.gl.getAttribLocation(this.programInfo.program, "a_shade");
+        this.gl.useProgram(this.programInfo.program); // Ativa o shader original   
+        const localTonalidade = this.gl.getAttribLocation(this.programInfo.program, "a_shade");// Impede que as tonalidades da concha afetem o peixe
 
         for (const parte of this.buffers) {
 

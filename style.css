@@ -16,7 +16,7 @@ body {
 } 
 
 canvas {
-    width: 1000px;
+    width: 900px;
     max-width: 95%;
     height: auto;
     aspect-ratio: 4 / 3;
@@ -27,8 +27,6 @@ canvas {
     background-color: transparent;
     box-shadow: none;
     touch-action: none;
-
-
 
 } /* FIM*/
 
@@ -42,10 +40,6 @@ canvas {
     height: auto; /* mantém a proporção da imagem*/
     transform: translateY(60px); /* Desce o título 20 pixels da posição inicial, estava desgostando */
 } /* FIM*/ 
-
-
-
-
 
 
 
@@ -84,5 +78,5 @@ canvas {
 
 /* SOBE O CANVAS SEM ALTERAR SEU TAMANHO */
 #canvas {
-    transform: translateY(-200px);
+    transform: translateY(-400px);
 }
