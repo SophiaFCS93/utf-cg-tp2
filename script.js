@@ -4,7 +4,8 @@
 *******************************************************/
 //SOMENTE INICIALIZANDO O WEBGL2, PINTANDO O CANVAS DE AZUL PARA TERMOS UM CORPO INCIAL
 const canvas = document.querySelector("#canvas");
-const gl = canvas.getContext("webgl2");
+//const gl = canvas.getContext("webgl2");
+const gl = canvas.getContext("webgl2", { alpha: true }); // para que o canvas tenha transparência sabe?
 
 
 /****************************************************************************************************************
@@ -294,7 +295,9 @@ function desenharCena(tempoAtual = 0) {
 
     twgl.resizeCanvasToDisplaySize(canvas);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-    gl.clearColor(0.75, 0.88, 0.96, 1.0);
+    //gl.clearColor(0.75, 0.88, 0.96, 1.0);
+    //gl.clearColor(0.753, 0.851, 0.910, 1.0);
+    gl.clearColor(0.0, 0.0, 0.0, 0.0); // Fundo totalmente transparente
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     // PROJEÇÃO PERSPECTIVA
@@ -554,7 +557,55 @@ function desenharCena(tempoAtual = 0) {
     
         /* PARTE 5 - PERSONAGEM */
         peixe.atualizar(deltaTime); // Atualiza o personagem
-        peixe.desenhar(matriz); // Desenha o personagem
+        peixe.desenhar(matriz); // Desenha o personagem 
+
+
+    /* PARTE 8 - CÚPULA SUPERIOR TRANSPARENTE */
+    //JÁ TEMOS UM HEMISFÉRIO INFERIOR DAI PEGUEI ESSE HEMISFÉRIO INICIAL E O INVERTI
+    //NÃO ALTEREI O TAMANHO SABE? 
+
+        let modeloCupula = twgl.m4.identity(); // Cria uma matriz para a cúpula
+    
+    modeloCupula = twgl.m4.scale(modeloCupula, [1, -1, 1]);// Inverte o hemisfério inferior para ficar acima da areia
+    
+    const matrizCupula = twgl.m4.multiply(matriz, modeloCupula); // Combina a matriz da câmera com a matriz da cúpula
+
+    gl.useProgram(programInfo.program); // Ativa o programa original
+
+    twgl.setBuffersAndAttributes(gl, programInfo, bufferHemisferio); // Ativa o buffer do hemisfério
+    
+   
+    const localTonalidadeCupula = gl.getAttribLocation(programInfo.program, "a_shade"); // Impede que as tonalidades da concha afetem a cúpula
+    // estava interferindo, precisei de ajuda para resolver e resolvemos dessa forma 
+
+
+    if (localTonalidadeCupula !== -1) {
+        gl.disableVertexAttribArray(localTonalidadeCupula);
+        gl.vertexAttrib1f(localTonalidadeCupula, 1.0);
+    }
+
+    
+    //A IDEIA É UM AQUÁRIO ENTÃO A PARTE DE CIMA TEM QUE, INICIALMENTE SER TRANSPARENTE 
+    //SE DER, VOU TENTAR COLOCAR TEXTURA DE ALGA!!! 
+    
+    // Habilita a transparência ↓↓↓ | O blending permite combinar a cor do vidro com a dos objetos que estão atrás dele!!
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    
+    gl.depthMask(false); // Impede que a cúpula altere o buffer de profundidade
+
+    // Define a matriz e a cor azul-clara transparente
+    twgl.setUniforms(programInfo, {
+        u_matrix: matrizCupula,
+        u_color: [0.65, 0.85, 0.95, 0.12]
+    });
+
+    twgl.drawBufferInfo(gl, bufferHemisferio); // Desenha a cúpula
+
+    // Restaura as configurações
+    gl.depthMask(true);
+    gl.disable(gl.BLEND);
+    //FIM
         
     requestAnimationFrame(desenharCena); // Solicita o próximo quadro da animação
 }
@@ -1183,12 +1234,22 @@ carregarKelp5();
 /************************************************************************
 PARTE 5 - Adicionar o personagem
 *************************************************************************/
+//O PROFESSOR DEU A IDEIA DE SEPARAR POR CLASSES E PARA O PEIXE EU ACHEI UMA EXCELENTE IDEIA.
+//O PEIXE TEM QUE MUDAR DE POSIÇÃO 
+// O PEIXE TEM VÁRIAS CORES
+//SEGUE O ARQUIVO "PEIXE.JS"
 
 
 
-/************************************************************************
-PARTE 6 - Implementar modelagem hierárquica
-*************************************************************************/
+/***************************************************************************************************************************
+PARTE 6 - Fechar a cúpula e implementar opcionais: semiesfera, transparente, que permitirá enxergar os elementos internos.
+**************************************************************************************************************************/
+//
+
+
+
+
+
 
 
 /************************************************************************
@@ -1196,9 +1257,9 @@ PARTE 7 - Configurar iluminação e materiais
 *************************************************************************/ 
 
 
-/**************************************************************************************************************************
-PARTE 8- Fechar a cúpula e implementar opcionais: semiesfera, transparente, que permitirá enxergar os elementos internos.
-*************************************************************************************************************************/
+/***********************************************************************
+PARTE 8- Implementar modelagem hierárquica 
+************************************************************************/
 
 
 /************************************************************************

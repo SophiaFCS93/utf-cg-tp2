@@ -20,9 +20,12 @@ canvas {
     max-width: 95%;
     height: auto;
     aspect-ratio: 4 / 3;
-    border: 2px solid #2f5f8f;
-    background-color: white;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    /*border: 2px solid #2f5f8f;*/
+    /*background-color: white;*/
+    /*box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);*/
+    border: none;
+    background-color: transparent;
+    box-shadow: none;
     touch-action: none;
 
 
@@ -34,9 +37,10 @@ canvas {
         2- IMAGEM QUE FIZ PARA SER O TÍTULO DO TP2 
 **************************************************************************/
 .titulo {
-    width: 350px; /* largura */
+    width: 600px; /* largura */
     max-width: 90%; /* máximo da largura disponível */
     height: auto; /* mantém a proporção da imagem*/
+    transform: translateY(60px); /* Desce o título 20 pixels da posição inicial, estava desgostando */
 } /* FIM*/ 
 
 
@@ -51,7 +55,7 @@ canvas {
 /* TEXTO DAS INSTRUÇÕES */
 
 .instrucoes-camera {
-    width: 220px;
+    width: 2210px;
     padding: 0;
     margin: 0;
 
@@ -70,7 +74,7 @@ canvas {
 }
 
 .instrucoes-camera p {
-    font-size: 16px;
+    font-size: 22px;
     line-height: 1.5;
     margin: 20px 0;
 }
@@ -80,5 +84,5 @@ canvas {
 
 /* SOBE O CANVAS SEM ALTERAR SEU TAMANHO */
 #canvas {
-    transform: translateY(-190px);
+    transform: translateY(-200px);
 }
