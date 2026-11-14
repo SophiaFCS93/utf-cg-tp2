@@ -403,9 +403,11 @@ function desenharCena(tempoAtual = 0) {
 
         // Define a posição e o tamanho de cada alga (03 algas a princípio)
         const algas = [
-            { posicao: [-1.3, 0.05, -1.2], escala: 0.85 }, //  Alga 1 - maior, na parte de trás
+            { posicao: [-1.3, 0.05, -1.2], escala: 0.95 }, //  Alga 1 - maior, na parte de trás
             { posicao: [-0.3, 0.05, -1.6], escala: 0.60 }, // Alga 2 - menor, mais à direita
-            { posicao: [-2.0, 0.05, -0.4], escala: 0.70 } // Alga 3 - média, mais à esquerda
+            { posicao: [-2.0, 0.05, -0.4], escala: 0.70 }, // Alga 3 - média, mais à esquerda
+            { posicao: [-2.1, 0.05, 0.9], escala: 0.50 },
+            { posicao: [-2.1, 0.05, 0.7], escala: 0.60 }
         ];
 
         twgl.setBuffersAndAttributes(gl, programInfo, bufferAlga );  // Utiliza o mesmo buffer para todas as algas
@@ -1260,13 +1262,16 @@ VOU APRIVEITAR ESSE EVENTO PARA O TRATAMENTO DA TECLA P!!*/
 PARTE 6 - Fechar a cúpula e implementar opcionais: semiesfera, transparente, 
 que permitirá enxergar os elementos internos.
 ********************************************************************************/
+
 //FECHAMOS A CULPULA NA FUNÇÃO "DESENHARCENA"
+// HÁ INTERESSE EM COLOCAR TEXTURA DE ÁGUA!! 
 
 
 
 /************************************************************************
 PARTE 7 - Configurar iluminação e materiais
 *************************************************************************/ 
+
 
 
 /***********************************************************************

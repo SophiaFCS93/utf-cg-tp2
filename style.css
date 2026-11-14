@@ -1,57 +1,110 @@
+
 /* IDEIA DE DIORAMA: AQUÁRIO */
 
 /*************************************************************************
-         1- CORPO INICIAL DO TP2 - COM A IMAGEM QUE FIZ PARA O FUNDO
+    1 - CORPO INICIAL DO TP2 - IMAGEM DE FUNDO
 **************************************************************************/
-body {
+
+html, body {
     margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+}
+
+body {
     font-family: Arial, sans-serif;
     text-align: center;
-    background-image: url("./assets/images/fundo_onda_mar2.png");
-    /*background-image: url("./assets/images/fundo_onda_mar.png");*/
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    min-height: 90vh;
-} 
 
-canvas {
-    width: 900px;
-    max-width: 95%;
+    background-image: url("./assets/images/fundo_onda_mar2.png");
+    background-size: cover;
+    background-position: center bottom;
+    background-repeat: no-repeat;
+
+    height: 100vh;
+    height: 100dvh;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+
+/*************************************************************************
+    2 - IMAGEM DO TÍTULO DO TP2
+**************************************************************************/
+
+h1 {
+    margin: 45px 0 0;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.titulo {
+    display: block;
+    width: 600px;
+    max-width: 90vw;
     height: auto;
+    transform: translateY(35px); /* Desce o título */
+}
+
+
+/*************************************************************************
+    3 - ÁREA PRINCIPAL DO DIORAMA
+**************************************************************************/
+
+.area-diorama {
+    position: relative;
+
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+/*************************************************************************
+    4 - CANVAS DO AQUÁRIO
+**************************************************************************/
+
+#canvas {
+    display: block;
+
+    width: min(950px, 70vw);
+    max-height: calc(100dvh - 160px);
+    height: auto;
+
     aspect-ratio: 4 / 3;
-    /*border: 2px solid #2f5f8f;*/
-    /*background-color: white;*/
-    /*box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);*/
+
     border: none;
     background-color: transparent;
     box-shadow: none;
+
     touch-action: none;
-
-} /* FIM*/
-
-
-/*************************************************************************
-        2- IMAGEM QUE FIZ PARA SER O TÍTULO DO TP2 
-**************************************************************************/
-.titulo {
-    width: 600px; /* largura */
-    max-width: 90%; /* máximo da largura disponível */
-    height: auto; /* mantém a proporção da imagem*/
-    transform: translateY(60px); /* Desce o título 20 pixels da posição inicial, estava desgostando */
-} /* FIM*/ 
-
+     transform: translateY(95px); /* Desce a cúpula */
+}
 
 
 /*************************************************************************
-        3- COMANDOS ESCRITOS NA TELA 
+    5 - COMANDOS ESCRITOS NA TELA
 **************************************************************************/
-/* TEXTO DAS INSTRUÇÕES */
 
 .instrucoes-camera {
-    width: 2210px;
-    padding: 0;
+    position: absolute;
+
+    left: 60px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    width: 320px;
     margin: 0;
+    padding: 0;
 
     background: none;
     border: none;
@@ -63,20 +116,54 @@ canvas {
 }
 
 .instrucoes-camera h3 {
-    font-size: 24px;
-    margin-bottom: ;
+    font-size: 22px;
+    margin: 0 0 15px;
 }
 
 .instrucoes-camera p {
-    font-size: 22px;
-    line-height: 1.5;
-    margin: 20px 0;
+    font-size: 19px;
+    line-height: 1.4;
+    margin: 12px 0;
 }
-.instrucoes-camera {
-    transform: translateX(80px);
-} 
 
-/* SOBE O CANVAS SEM ALTERAR SEU TAMANHO */
-#canvas {
-    transform: translateY(-400px);
+
+/*************************************************************************
+    6 - AJUSTES PARA TELAS MENORES
+**************************************************************************/
+
+@media (max-width: 1100px) {
+
+    body {
+        height: auto;
+        min-height: 100dvh;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    .area-diorama {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px 0 30px;
+    }
+
+    #canvas {
+        width: min(90vw, 700px);
+        max-height: none;
+    }
+
+    .instrucoes-camera {
+        position: static;
+        transform: none;
+
+        width: min(90%, 400px);
+        text-align: center;
+    }
+
+    .instrucoes-camera h3 {
+        font-size: 20px;
+    }
+
+    .instrucoes-camera p {
+        font-size: 15px;
+    }
 }

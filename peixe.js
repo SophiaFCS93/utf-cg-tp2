@@ -8,11 +8,7 @@ class Peixe {
         this.programInfo = programInfo; // Programa de shaders do diorama
         
         //AQUI SERIA PARA UMA UNICA POSIÇÃO MAS O PEIXINHO TEM QUE FICAR NA PISIÇÃO INICIAL E MAIS 3 
-        //this.posicao = [0.0, 1.2, 0.0]; // Posição inicial
-        //this.escala = 0.85; // Tamanho inicial
-        //this.escala = 1.0; // Tamanho inicial
-        // this.rotacao = 0; // Rotação em torno do eixo Y 
-        this.escala = 0.95; // Tamanho inicial
+        this.escala = 1.0; // Tamanho inicial
 
         //POSIÇÕES ALTERNATIVAS DO PERSONAGEM
         //A e rotacaoY faz o peixe virar horizontalmente
@@ -28,7 +24,7 @@ class Peixe {
                 nome: "Curioso",
                 posicao: [0.0, 1.2, 1.5],
                 rotacaoY: -3 * Math.PI / 4,
-                rotacaoX: Math.PI / 12, // Inclinação de 20°
+                rotacaoX: Math.PI / 6, // Inclinação de 20°
                 rotacaoZ: 0
             },
             {
@@ -39,7 +35,7 @@ class Peixe {
             },
             {
                 nome: "Descansando na areia",
-                posicao: [1.8, 0.5, 1.0],
+                posicao: [1.8, 0.7, 1.0],
                 rotacaoY: 0,
                 rotacaoZ: -Math.PI / 50
             }
@@ -206,7 +202,8 @@ class Peixe {
 
     /* ATUALIZA O PERSONAGEM */
     atualizar(deltaTime) {
-        // Futuramente, colocaremos a animação do peixe aqui
+        
+        // Futuramente, colocaremos a animação do peixe aqui SERÁ?
     }
 
     
@@ -229,15 +226,8 @@ class Peixe {
     desenhar(matriz) {
 
         if (!this.carregado) return; // Aguarda o carregamento
-        //let modeloPeixe = twgl.m4.identity(); // Cria a matriz de modelagem
-        //modeloPeixe = twgl.m4.translate(modeloPeixe, this.posicao); // Posiciona o peixe
-        //modeloPeixe = twgl.m4.rotateY(modeloPeixe, this.rotacao); // Rotaciona o peixe
-        //modeloPeixe = twgl.m4.scale(modeloPeixe, [this.escala, this.escala, this.escala]); // Define o tamanho
+        
         let modeloPeixe = twgl.m4.identity();
-        //modeloPeixe = twgl.m4.translate(modeloPeixe, this.posicao); // Posiciona o peixe
-        //modeloPeixe = twgl.m4.rotateY(modeloPeixe, this.rotacao); // Rotaciona horizontalmente
-        //modeloPeixe = twgl.m4.rotateZ(modeloPeixe, this.inclinacao); // Inclina o corpo
-        //modeloPeixe = twgl.m4.scale(modeloPeixe, [this.escala, this.escala, this.escala]); // Define o tamanho
         modeloPeixe = twgl.m4.translate(modeloPeixe, this.posicao);
         modeloPeixe = twgl.m4.rotateY(modeloPeixe, this.rotacao);
         modeloPeixe = twgl.m4.rotateX(modeloPeixe, this.inclinacaoX);
