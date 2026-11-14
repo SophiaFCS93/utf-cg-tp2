@@ -16,14 +16,17 @@ body {
 } 
 
 canvas {
-    width: 800px;
+    width: 1000px;
     max-width: 95%;
     height: auto;
     aspect-ratio: 4 / 3;
     border: 2px solid #2f5f8f;
     background-color: white;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    touch-action: none;22
+    touch-action: none;
+
+
+
 } /* FIM*/
 
 
@@ -34,4 +37,48 @@ canvas {
     width: 350px; /* largura */
     max-width: 90%; /* máximo da largura disponível */
     height: auto; /* mantém a proporção da imagem*/
-} /* FIM*/
+} /* FIM*/ 
+
+
+
+
+
+
+
+/*************************************************************************
+        3- COMANDOS ESCRITOS NA TELA 
+**************************************************************************/
+/* TEXTO DAS INSTRUÇÕES */
+
+.instrucoes-camera {
+    width: 220px;
+    padding: 0;
+    margin: 0;
+
+    background: none;
+    border: none;
+    box-shadow: none;
+
+    color: #174c70;
+    text-align: left;
+    font-family: Arial, sans-serif;
+}
+
+.instrucoes-camera h3 {
+    font-size: 24px;
+    margin-bottom: ;
+}
+
+.instrucoes-camera p {
+    font-size: 16px;
+    line-height: 1.5;
+    margin: 20px 0;
+}
+.instrucoes-camera {
+    transform: translateX(80px);
+} 
+
+/* SOBE O CANVAS SEM ALTERAR SEU TAMANHO */
+#canvas {
+    transform: translateY(-190px);
+}

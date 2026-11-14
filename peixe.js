@@ -1,0 +1,205 @@
+
+/* PARTE 5 - PERSONAGEM: PEIXE */
+
+class Peixe {
+
+    constructor(gl, programInfo) {
+        this.gl = gl; // Contexto WebGL2
+        this.programInfo = programInfo; // Programa de shaders do diorama
+
+        this.posicao = [0.0, 1.2, 0.0]; // Posição inicial
+        //this.escala = 0.85; // Tamanho inicial
+        this.escala = 1.0; // Tamanho inicial
+        this.rotacao = 0; // Rotação em torno do eixo Y
+
+        this.buffers = []; // Guarda os buffers das partes do peixe
+        this.carregado = false; // Indica se o modelo foi carregado
+
+        this.caminhoOBJ = "assets/personagem/peixe/model.obj";
+        this.caminhoMTL = "assets/personagem/peixe/materials.mtl";
+    }
+
+    /* CARREGA O MODELO 3D E SEUS MATERIAIS */
+
+    async carregar() {
+
+        try {
+            const respostaOBJ = await fetch(this.caminhoOBJ); // Busca o arquivo OBJ
+            const respostaMTL = await fetch(this.caminhoMTL); // Busca o arquivo MTL
+
+            if (!respostaOBJ.ok || !respostaMTL.ok) {
+                throw new Error("Não foi possível carregar o OBJ ou MTL do peixe!");
+            }
+
+            const conteudoOBJ = await respostaOBJ.text();
+            const conteudoMTL = await respostaMTL.text();
+
+            const vertices = []; // Posições dos vértices
+            const materiais = {}; // Cores dos materiais
+            const grupos = {}; // Faces separadas por material
+
+            /* ETAPA 1 - LER AS CORES DO MTL */
+
+            let materialAtual = "";
+
+            for (const linha of conteudoMTL.split(/\r?\n/)) {
+
+                const valores = linha.trim().split(/\s+/);
+
+                if (valores[0] === "newmtl") {
+                    materialAtual = valores.slice(1).join(" "); // Nome do material
+                }
+
+                if (valores[0] === "Kd" && materialAtual) {
+                    materiais[materialAtual] = [
+                        parseFloat(valores[1]),
+                        parseFloat(valores[2]),
+                        parseFloat(valores[3]),
+                        1.0
+                    ];
+                }
+            }
+
+            /* ETAPA 2 - LER OS VÉRTICES E AS FACES DO OBJ */
+
+            materialAtual = "padrao";
+
+            for (const linha of conteudoOBJ.split(/\r?\n/)) {
+
+                const valores = linha.trim().split(/\s+/);
+
+                if (valores[0] === "v") {
+                    const x = parseFloat(valores[1]);
+                    const y = parseFloat(valores[2]);
+                    const z = parseFloat(valores[3]);
+                    vertices.push(x, y, z);
+                }
+
+                if (valores[0] === "usemtl") {
+                    materialAtual = valores.slice(1).join(" "); // Seleciona o material
+                }
+
+                if (valores[0] === "f") {
+
+                    if (!grupos[materialAtual]) grupos[materialAtual] = [];
+
+                    const indicesFace = [];
+                    const quantidadeVertices = vertices.length / 3;
+
+                    for (let i = 1; i < valores.length; i++) {
+                        const indiceOBJ = parseInt(valores[i].split("/")[0], 10);
+                        const indice = indiceOBJ > 0 ? indiceOBJ - 1 : quantidadeVertices + indiceOBJ;
+                        indicesFace.push(indice);
+                    }
+
+                    // Divide a face em triângulos
+                    for (let i = 1; i < indicesFace.length - 1; i++) {
+
+                        const triangulo = [indicesFace[0], indicesFace[i], indicesFace[i + 1]];
+
+                        for (const indice of triangulo) {
+                            const inicio = indice * 3;
+                            grupos[materialAtual].push(vertices[inicio], vertices[inicio + 1], vertices[inicio + 2]);
+                        }
+                    }
+                }
+            }
+
+            /* ETAPA 3 - ENCONTRAR O CENTRO DO PEIXE */
+
+            let minX = Infinity, maxX = -Infinity;
+            let minY = Infinity, maxY = -Infinity;
+            let minZ = Infinity, maxZ = -Infinity;
+
+            for (let i = 0; i < vertices.length; i += 3) {
+                minX = Math.min(minX, vertices[i]);
+                maxX = Math.max(maxX, vertices[i]);
+                minY = Math.min(minY, vertices[i + 1]);
+                maxY = Math.max(maxY, vertices[i + 1]);
+                minZ = Math.min(minZ, vertices[i + 2]);
+                maxZ = Math.max(maxZ, vertices[i + 2]);
+            }
+
+            const centroX = (minX + maxX) / 2;
+            const centroY = (minY + maxY) / 2;
+            const centroZ = (minZ + maxZ) / 2;
+
+            /* ETAPA 4 - CRIAR OS BUFFERS DOS MATERIAIS */
+
+            this.buffers = [];
+
+            for (const nomeMaterial in grupos) {
+
+                const posicoes = grupos[nomeMaterial];
+
+                // Centraliza a geometria
+                for (let i = 0; i < posicoes.length; i += 3) {
+                    posicoes[i] -= centroX;
+                    posicoes[i + 1] -= centroY;
+                    posicoes[i + 2] -= centroZ;
+                }
+
+                // Cria um buffer para cada parte do peixe
+                const buffer = twgl.createBufferInfoFromArrays(this.gl, {
+                    a_position: { numComponents: 3, data: posicoes }
+                });
+
+                this.buffers.push({
+                    buffer: buffer,
+                    cor: materiais[nomeMaterial] || [0.60, 0.40, 0.70, 1.0]
+                });
+            }
+
+            this.carregado = this.buffers.length > 0;
+
+            console.log("Peixe carregado com sucesso!");
+            console.log("Vértices:", vertices.length / 3);
+            console.log("Partes com materiais:", this.buffers.length);
+
+        } catch (erro) {
+            console.error("Erro ao carregar o peixe:", erro);
+        }
+    }
+
+    /* ATUALIZA O PERSONAGEM */
+
+    atualizar(deltaTime) {
+        // Futuramente, colocaremos a animação do peixe aqui
+    }
+
+    /* DESENHA O PEIXE NO DIORAMA */
+
+    desenhar(matriz) {
+
+        if (!this.carregado) return; // Aguarda o carregamento
+
+        let modeloPeixe = twgl.m4.identity(); // Cria a matriz de modelagem
+        modeloPeixe = twgl.m4.translate(modeloPeixe, this.posicao); // Posiciona o peixe
+        modeloPeixe = twgl.m4.rotateY(modeloPeixe, this.rotacao); // Rotaciona o peixe
+        modeloPeixe = twgl.m4.scale(modeloPeixe, [this.escala, this.escala, this.escala]); // Define o tamanho
+
+        const matrizPeixe = twgl.m4.multiply(matriz, modeloPeixe); // Combina as matrizes
+
+        this.gl.useProgram(this.programInfo.program); // Ativa o shader original
+
+        // Impede que as tonalidades da concha afetem o peixe
+        const localTonalidade = this.gl.getAttribLocation(this.programInfo.program, "a_shade");
+
+        for (const parte of this.buffers) {
+
+            twgl.setBuffersAndAttributes(this.gl, this.programInfo, parte.buffer); // Ativa o buffer
+
+            if (localTonalidade !== -1) {
+                this.gl.disableVertexAttribArray(localTonalidade);
+                this.gl.vertexAttrib1f(localTonalidade, 1.0);
+            }
+
+            twgl.setUniforms(this.programInfo, {
+                u_matrix: matrizPeixe,
+                u_color: parte.cor
+            });
+
+            twgl.drawBufferInfo(this.gl, parte.buffer); // Desenha a parte do peixe
+        }
+    }
+}

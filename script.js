@@ -86,6 +86,7 @@ const fragmentShader = `#version 300 es
 const programInfo = twgl.createProgramInfo(gl, [vertexShader,fragmentShader]); 
 
 
+
 /* PARTE 1 - SHADERS PARA A TEXTURA DO CHÃO */
 // Vertex Shader da areia
 // in vec2 a_texcoord → Recebe duas coordenadas por vértice: u e v. Elas representam posições na imagem
@@ -143,13 +144,9 @@ function criarChaoCircular(raio, segmentos) {
         const angulo1 = i * 2 * Math.PI / segmentos;
         const angulo2 = (i + 1) * 2 * Math.PI / segmentos;
 
-        vertices.push(0, 0, 0); // Centro do círculo
-
-        // Segundo ponto da borda
-        vertices.push( raio * Math.cos(angulo2), 0,raio * Math.sin(angulo2));
-
-        //Primeiro ponto da borda
-        vertices.push( raio * Math.cos(angulo1), 0, raio * Math.sin(angulo1)
+        vertices.push(0, 0, 0); // Centro do círculo    
+        vertices.push( raio * Math.cos(angulo2), 0,raio * Math.sin(angulo2)); // Segundo ponto da borda
+        vertices.push( raio * Math.cos(angulo1), 0, raio * Math.sin(angulo1)  //Primeiro ponto da borda
         );
     }
 
@@ -157,7 +154,7 @@ function criarChaoCircular(raio, segmentos) {
 }
 
 /* TEXTURA DE AREIA NO CHÃO*/
-const caminhoAreia = "assets/textures/areia.jpg";
+const caminhoAreia = "assets/texturasChao/areia.jpg";
 
 // Carrega a imagem da areia para uma textura WebGL
 const texturaAreia = twgl.createTexture(gl, {
@@ -177,8 +174,8 @@ function criarHemisferioInferior(raio, segmentos, divisoes) {
     const vertices = [];
 
     // Calcula a posição de um ponto na semiesfera
-    // θ: percorre a circunferência horizontalmente, de 0° até 360°.
-    // φ: controla quanto descemos da borda do disco em direção ao fundo da semiesfera, de 0° até 90°.
+    // θ: percorre a circunferência horizontalmente, de 0° até 360°
+    // φ: controla quanto descemos da borda do disco em direção ao fundo da semiesfera, de 0° até 90°
     function calcularPonto(theta, phi) {
         const x = raio * Math.cos(phi) * Math.cos(theta); 
         const y = -raio * Math.sin(phi);
@@ -221,13 +218,10 @@ const coordenadasTextura = []; // guarda as coordenadas UV
 
 // Percorre os vértices do chão
 for (let i = 0; i < verticesChao.length; i += 3) {
-
     const x = verticesChao[i]; // Coordenada X do vértice
     const z = verticesChao[i + 2]; // Coordenada Z do vértice
-
     const u = (x + 3) / 6; // Converte X para U
     const v = (z + 3) / 6; // Converte Z para V
-
     coordenadasTextura.push(u, v); // Guarda as coordenadas UV
 }
 
@@ -237,16 +231,6 @@ const bufferInfo = twgl.createBufferInfoFromArrays(gl, {
     a_texcoord: { numComponents: 2, data: coordenadasTextura }
 });
 /*fim*/
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -289,6 +273,9 @@ const sensibilidadeMouse = 0.005;
 // Guarda o buffer da concha após o carregamento
 let bufferConcha = null;
 
+/* PARTE 5 - PERSONAGEM */
+const peixe = new Peixe(gl, programInfo);
+peixe.carregar();
 
 
 //(tempoAtual = 0) Recebe o tempo fornecido pelo requestAnimationFrame para calcular a movimentação da câmera
@@ -322,28 +309,28 @@ function desenharCena(tempoAtual = 0) {
 
 
     //PARTE 3
-//JÁ MUDEI 500X
-//POSIÇÃO DA CÂMERA ATIVA
-let posicaoCamera;
+    //JÁ MUDEI 500X
+    //POSIÇÃO DA CÂMERA ATIVA
+    let posicaoCamera;
 
-if (cameraAtiva === 1) {
-    // Câmera 1: gira automaticamente a 45 graus
-    const inclinacao = Math.PI / 4;
+    if (cameraAtiva === 1) {
+        // Câmera 1: gira automaticamente a 45 graus
+        const inclinacao = Math.PI / 4;
 
-    posicaoCamera = [
-        distanciaCamera * Math.cos(inclinacao) * Math.sin(anguloCamera),
-        distanciaCamera * Math.sin(inclinacao),
-        distanciaCamera * Math.cos(inclinacao) * Math.cos(anguloCamera)
-    ];
+        posicaoCamera = [
+            distanciaCamera * Math.cos(inclinacao) * Math.sin(anguloCamera),
+            distanciaCamera * Math.sin(inclinacao),
+            distanciaCamera * Math.cos(inclinacao) * Math.cos(anguloCamera)
+        ];
 
-} else {
-    // Câmera 2: posição controlada pelo mouse
-    posicaoCamera = [
-        distanciaCamera * Math.cos(anguloVertical) * Math.sin(anguloHorizontal),
-        distanciaCamera * Math.sin(anguloVertical),
-        distanciaCamera * Math.cos(anguloVertical) * Math.cos(anguloHorizontal)
-    ];
-} /*FIM*/
+    } else {
+        // Câmera 2: posição controlada pelo mouse
+        posicaoCamera = [
+            distanciaCamera * Math.cos(anguloVertical) * Math.sin(anguloHorizontal),
+            distanciaCamera * Math.sin(anguloVertical),
+            distanciaCamera * Math.cos(anguloVertical) * Math.cos(anguloHorizontal)
+        ];
+    } /*FIM*/
 
 
 
@@ -377,6 +364,9 @@ if (cameraAtiva === 1) {
     twgl.drawBufferInfo(gl, bufferHemisferio);
 
     
+    /**********************************************************************
+                    BUFFERS DOS OBJETOS 3D DO DIORAMA - PARTE 4
+    ***********************************************************************/
     
     /*PARTE 4 CONCHA*/
     if (bufferConcha !== null) {
@@ -405,6 +395,7 @@ if (cameraAtiva === 1) {
         
       
     /*PARTE 4 - GRUPO DE ALGAS */ 
+    /* REPETE A ESTRUTURA DA CONCHA COM ALGUMAS ALTERAÇÕES */
     if (bufferAlga !== null) {
 
         // Define a posição e o tamanho de cada alga (03 algas a princípio)
@@ -414,8 +405,7 @@ if (cameraAtiva === 1) {
             { posicao: [-2.0, 0.05, -0.4], escala: 0.70 } // Alga 3 - média, mais à esquerda
         ];
 
-        // Utiliza o mesmo buffer para todas as algas
-        twgl.setBuffersAndAttributes(gl, programInfo, bufferAlga );
+        twgl.setBuffersAndAttributes(gl, programInfo, bufferAlga );  // Utiliza o mesmo buffer para todas as algas
 
         // Percorre cada alga definida no array
         for (const alga of algas) {
@@ -426,7 +416,7 @@ if (cameraAtiva === 1) {
 
         // Define a matriz e a cor verde
         twgl.setUniforms(programInfo, {
-            u_matrix: matrizAlga,
+            u_matrix: matrizAlga, 
             u_color: [0.12, 0.48, 0.20, 1.0]
         });
 
@@ -437,18 +427,14 @@ if (cameraAtiva === 1) {
 
 
     /*PARTE 4 - ESTRELA DO MAR - CONJUNTO */ 
+    /* REPETE A ESTRUTURA DA CONCHA COM ALGUMAS ALTERAÇÕES */
     if (bufferEstrela !== null) {
         let modeloEstrela = twgl.m4.identity();
         modeloEstrela = twgl.m4.translate( modeloEstrela, [0.5, 0.03, 0.8]); // Posiciona o conjunto das estrelas sobre a areia
         modeloEstrela = twgl.m4.scale(modeloEstrela,[0.18, 0.18, 0.18]); // Reduz o conjunto para caber melhor no diorama
         const matrizEstrela = twgl.m4.multiply( matriz, modeloEstrela); // Combina a matriz da câmera com a matriz do objeto
-
-        // Ativa os buffers das estrelas
-        twgl.setBuffersAndAttributes(
-            gl,
-            programInfo,
-            bufferEstrela
-        );
+        
+        twgl.setBuffersAndAttributes(gl, programInfo, bufferEstrela);// Ativa os buffers das estrelas
 
         // Define a matriz e uma cor alaranjada
         twgl.setUniforms(programInfo, {
@@ -464,21 +450,21 @@ if (cameraAtiva === 1) {
 
 
     /*PARTE 4 - OURIÇOS */
+    /* REPETE A ESTRUTURA DA CONCHA COM ALGUMAS ALTERAÇÕES */
     if (bufferOurico !== null) {
 
         // Define a posição e o tamanho de cada ouriço
         const ouricos = [
             { posicao: [-1.9, 0.04, 0.6], escala: 0.12 },  // Ouriço 1 - pequeno, à esquerda
             { posicao: [-1.0, 0.05, -1.4], escala: 0.12 },   // Ouriço 2 - maior, perto das algas
-            { posicao: [-1.8, 0.05, -0.5], escala: 0.12 }
+            { posicao: [-1.8, 0.05, -0.5], escala: 0.12 }    // Ouriç 3  o outro ouriço
         ];
-
-        // Ativa o buffer compartilhado pelos dois ouriços
-        twgl.setBuffersAndAttributes(gl, programInfo, bufferOurico);
+        
+        twgl.setBuffersAndAttributes(gl, programInfo, bufferOurico);// Ativa o buffer compartilhado pelos dois ouriços
 
         // Percorre os dois ouriços
         for (const ourico of ouricos) {
-
+           
             let modeloOurico = twgl.m4.identity(); // Cria a matriz de modelagem
             modeloOurico = twgl.m4.translate(modeloOurico, ourico.posicao); // Posiciona o ouriço na areia
             modeloOurico = twgl.m4.scale(modeloOurico, [ourico.escala, ourico.escala, ourico.escala]); // Define o tamanho
@@ -494,11 +480,9 @@ if (cameraAtiva === 1) {
     }
 
 
-
-
-
-    
-    /*PARTE 4 - BOLACHA DO MAR */ 
+   
+    /*PARTE 4 - BOLACHA DO MAR */
+     /* REPETE A ESTRUTURA DA CONCHA COM ALGUMAS ALTERAÇÕES */
     if (bufferBolacha !== null) { 
 
         let modeloBolacha = twgl.m4.identity();
@@ -529,7 +513,7 @@ if (cameraAtiva === 1) {
     
         twgl.setBuffersAndAttributes( gl, programInfo, bufferCoral ); 
 
-            for (const coral of corais) {
+        for (const coral of corais) {
 
             let modeloCoral = twgl.m4.identity(); // Cria a matriz de modelagem
             modeloCoral = twgl.m4.translate(modeloCoral, coral.posicao); // Posiciona o coral
@@ -542,41 +526,46 @@ if (cameraAtiva === 1) {
 
     }
 
-    
+        
     /*PARTE 4 - CORAIS 2*/
     if (bufferKelp5 !== null) {
 
-        // Define a posição e o tamanho de cada coral
+        // Define a posição, o tamanho e a cor de cada coral
         const kelp = [
-            { posicao: [0.50, 0.05, -1.5], escala: 0.45 },  // Coral 1 - maior
-            { posicao: [-1.0, 0.07, 0.6], escala: 0.30 },  // Coral 2 - menor
-            //{ posicao: [-1.8, 0.05, -0.5], escala: 0.12 }  // Coral 3 - menor
+            { posicao: [0.50, 0.05, -1.5], escala: 0.45, cor: [0.72, 0.24, 0.22, 1.0] }, // Coral 1 - vermelho terracota
+            { posicao: [-1.0, 0.07, 0.6], escala: 0.30, cor: [0.75, 0.55, 0.15, 1.0] }  // Coral 2 - amarelo mostarda
         ];
 
         twgl.setBuffersAndAttributes(gl, programInfo, bufferKelp5);
 
         for (const coral of kelp) {
-            let modeloKelp5 = twgl.m4.identity(); 
-            modeloKelp5 = twgl.m4.translate(modeloKelp5, coral.posicao);
-            modeloKelp5 = twgl.m4.scale(modeloKelp5, [coral.escala, coral.escala, coral.escala]);
-            const matrizKelp5 = twgl.m4.multiply(matriz, modeloKelp5);
-            
-            twgl.setUniforms(programInfo, { 
-                u_matrix: matrizKelp5, 
-                //u_color: [0.91, 0.36, 0.29, 1.0] 
-                u_color: [0.72, 0.24, 0.22, 1.0] // Vermelho terracota
-            });
+
+            let modeloKelp5 = twgl.m4.identity(); // Cria a matriz de modelagem
+            modeloKelp5 = twgl.m4.translate(modeloKelp5, coral.posicao); // Posiciona o coral
+            modeloKelp5 = twgl.m4.scale(modeloKelp5, [coral.escala, coral.escala, coral.escala]); // Define o tamanho
+
+            const matrizKelp5 = twgl.m4.multiply(matriz, modeloKelp5); // Combina as matrizes
+
+            twgl.setUniforms(programInfo, { u_matrix: matrizKelp5, u_color: coral.cor }); // Aplica a cor individual
 
             twgl.drawBufferInfo(gl, bufferKelp5); // Desenha o coral
+            }
         }
-    }
-  
+    
+        /* PARTE 5 - PERSONAGEM */
+        peixe.atualizar(deltaTime); // Atualiza o personagem
+        peixe.desenhar(matriz); // Desenha o personagem
+        
     requestAnimationFrame(desenharCena); // Solicita o próximo quadro da animação
 }
 
 requestAnimationFrame(desenharCena);
 
 
+
+/*********************************************************************
+                CAMERAS 1 E 2 - PARTE 3
+ *********************************************************************/ 
 
 /* PARTE 3 - ALTERNANDO ENTRE AS CÂMERAS*/ 
 // Alterna entre as câmeras usando as teclas 1 e 2
@@ -662,11 +651,11 @@ canvas.addEventListener("wheel", function(evento) {
 /*********************************************************************************
                     PARTE 4 - Adicionar os objetos 3D
 // ********************************************************************************/ 
-//,.OBJ POIS GLTF DÁ MUITO TRABALHO, NUUU
+//USAR ARTUIVOS '.OBJ' POIS GLTF DÁ MUITO TRABALHO, NUUU! DEIXA GLTF PARA O PERSONAGEM, SE FOR NECESSÁRIO
+// ESSA ESTRUTURA VAI SER REPETIDA PARA OS OUTROS OBJETOS, SALVO ALGUMAS EXCEÇÕES
 
 
 /* ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓   CONCHA 1 ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ */
-
 const caminhoConcha = "assets/models/concha/TurretShell.obj";// Caminho do arquivo OBJ da concha
 
 // Função assíncrona responsável por carregar a concha
@@ -722,15 +711,14 @@ async function carregarConcha() {
             }
 
             /* Divide a face em triângulos. Funciona também com faces convexas que tenham mais de quatro vértices.
-            
             Triângulo: A B C -> A B C
             
             Quadrilátero: A B C D dividido em 2 triangulos!!! 
             -> Triângulo 1: A B C
             -> Triângulo 2: A C D
                          
-            PORQUE? porque a maioria dos objetos do mar que encontrei como estrela do mar, algas, etc,
-            tem faces com 4 vértices e o código que eu tinha antes era somente para faces trinangulares, por causa da concha. */
+            PORQUE? porque a maioria dos objetos do mar que encontrei como estrela do mar, algas, etc,tem faces com 4 vértices e
+            o código que eu tinha antes era somente para faces trinangulares, por causa da concha. */
 
             for (let i = 1; i < indicesFace.length - 1; i++) {
                 indices.push(indicesFace[0], indicesFace[i], indicesFace[i + 1]); // Adiciona os três índices de um triângulo
@@ -798,9 +786,6 @@ async function carregarConcha() {
 
     console.log("Concha carregada com várias tonalidades!");
     console.log("Triângulos:", indices.length / 3);
-
-
-
 
 } // FIM DA FUNÇÃO carregarConcha()
 
@@ -1192,16 +1177,6 @@ async function carregarKelp5() {
     console.log("Buffer do Kelp 5 criado!", bufferKelp5);
 }
 carregarKelp5();
-
-
-
-
-/* ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓   PEDRAS   ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ */
-
-
-
-
-
 
 
 
