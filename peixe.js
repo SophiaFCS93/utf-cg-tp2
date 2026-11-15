@@ -1,6 +1,5 @@
 
-/* PARTE 5 - PERSONAGEM: PEIXE */
-
+/* PARTE 5 - PERSONAGEM: PEIXE  E PARTE 7 - ILUMINAÇÃO PHONG*/
 class Peixe {
 
     constructor(gl, programInfo) {
@@ -24,7 +23,7 @@ class Peixe {
                 nome: "Curioso",
                 posicao: [0.0, 1.2, 1.5],
                 rotacaoY: -3 * Math.PI / 4,
-                rotacaoX: Math.PI / 6, // Inclinação de 20°
+                rotacaoX: Math.PI / 8, // Inclinação de 20°
                 rotacaoZ: 0
             },
             {
@@ -40,8 +39,7 @@ class Peixe {
                 rotacaoZ: -Math.PI / 50
             }
         ];
-
-        
+       
         
         this.posicaoAtual = 0;
         this.posicao = [...this.posicoes[0].posicao];
@@ -51,6 +49,7 @@ class Peixe {
 
         this.buffers = []; // Guarda os buffers das partes do peixe
         this.carregado = false; // Indica se o modelo foi carregado
+        this.posicaoLuzLocal = null; // PARTE 7 - Posição da bolinha luminosa no modelo
 
         this.caminhoOBJ = "assets/personagem/peixe/model.obj";
         this.caminhoMTL = "assets/personagem/peixe/materials.mtl";
@@ -175,17 +174,89 @@ class Peixe {
                     posicoes[i] -= centroX;
                     posicoes[i + 1] -= centroY;
                     posicoes[i + 2] -= centroZ;
+                } 
+
+
+                /* PARTE 7 - LOCALIZAR A BOLINHA LUMINOSA */
+                if (nomeMaterial === "mat12") {
+
+                    let minX = Infinity;
+                    let maxX = -Infinity;
+
+                    let minY = Infinity;
+                    let maxY = -Infinity;
+
+                    let minZ = Infinity;
+                    let maxZ = -Infinity;
+
+                    // Percorre os vértices da parte amarela
+                    for (let i = 0; i < posicoes.length; i += 3) {
+
+                        minX = Math.min(minX, posicoes[i]);
+                        maxX = Math.max(maxX, posicoes[i]);
+
+                        minY = Math.min(minY, posicoes[i + 1]);
+                        maxY = Math.max(maxY, posicoes[i + 1]);
+
+                        minZ = Math.min(minZ, posicoes[i + 2]);
+                        maxZ = Math.max(maxZ, posicoes[i + 2]);
+                    }
+
+                    // Calcula o centro da bolinha amarela
+                    this.posicaoLuzLocal = [
+                        (minX + maxX) / 2,
+                        (minY + maxY) / 2,
+                        (minZ + maxZ) / 2
+                    ];
+
+                    console.log(
+                        "Posição local da luz do peixe:",
+                        this.posicaoLuzLocal
+                    );
                 }
 
-                // Cria um buffer para cada parte do peixe
-                const buffer = twgl.createBufferInfoFromArrays(this.gl, {
-                    a_position: { numComponents: 3, data: posicoes }
-                });
 
+
+
+
+                // Cria um buffer com posições e normais para Phong
+                const buffer = criarBufferPhong(
+                    this.gl,
+                    posicoes
+                );
+                
+                
+
+                // Obtém a cor original do arquivo MTL
+                const cor = materiais[nomeMaterial] ||
+                    [0.60, 0.40, 0.70, 1.0];
+
+                // Identifica materiais amarelos e luminosos
+                const ehBolinhaLuminosa =
+                    cor[0] >= 0.80 &&
+                    cor[1] >= 0.65 &&
+                    cor[2] <= 0.40;
+
+                // Define a intensidade da emissão
+                const emissao = ehBolinhaLuminosa ? 0.85 : 0.0;
+
+                // Guarda o buffer, sua cor e a emissão
                 this.buffers.push({
                     buffer: buffer,
-                    cor: materiais[nomeMaterial] || [0.60, 0.40, 0.70, 1.0]
+                    cor: cor,
+                    emissao: emissao
                 });
+
+                // Permite conferir os materiais no console
+                console.log(
+                    "Material do peixe:",
+                    nomeMaterial,
+                    "Cor:", cor,
+                    "Emissão:", emissao
+                );
+
+
+
             }
 
             this.carregado = this.buffers.length > 0;
@@ -220,39 +291,120 @@ class Peixe {
         this.inclinacaoX = novaPosicao.rotacaoX || 0;
     }
 
+    
+    //PARTE 7 - POSIÇÃO DA LUZ PONTUAL DO PEIXE
+    obterPosicaoLuzMundo() {
+
+        // Aguarda a identificação da bolinha
+        if (!this.posicaoLuzLocal) {
+            return null;
+        }
+
+        // Cria a matriz de modelagem do peixe
+        let modeloPeixe = twgl.m4.identity();
+
+        // Mantém a posição atual do peixe
+        modeloPeixe = twgl.m4.translate(
+            modeloPeixe,
+            this.posicao
+        );
+
+        // Mantém suas rotações
+        modeloPeixe = twgl.m4.rotateY(
+            modeloPeixe,
+            this.rotacao
+        );
+
+        modeloPeixe = twgl.m4.rotateX(
+            modeloPeixe,
+            this.inclinacaoX
+        );
+
+        modeloPeixe = twgl.m4.rotateZ(
+            modeloPeixe,
+            this.inclinacao
+        );
+
+        // Mantém sua escala
+        modeloPeixe = twgl.m4.scale(
+            modeloPeixe,
+            [this.escala, this.escala, this.escala]
+        );
+
+        // Converte a posição da bolinha
+        // para as coordenadas do mundo 3D
+        return twgl.m4.transformPoint(
+            modeloPeixe,
+            this.posicaoLuzLocal
+        );
+    }
 
 
     /* DESENHA O PEIXE NO DIORAMA */
-    desenhar(matriz) {
+    desenhar(matriz, posicaoCamera) {
 
-        if (!this.carregado) return; // Aguarda o carregamento
-        
+        // Aguarda o carregamento do modelo OBJ e seus materiais
+        if (!this.carregado) return;
+
+        // Cria a matriz de modelagem do peixe
         let modeloPeixe = twgl.m4.identity();
-        modeloPeixe = twgl.m4.translate(modeloPeixe, this.posicao);
-        modeloPeixe = twgl.m4.rotateY(modeloPeixe, this.rotacao);
-        modeloPeixe = twgl.m4.rotateX(modeloPeixe, this.inclinacaoX);
-        modeloPeixe = twgl.m4.rotateZ(modeloPeixe, this.inclinacao);
-        modeloPeixe = twgl.m4.scale(modeloPeixe, [this.escala, this.escala, this.escala]);
-        
-        const matrizPeixe = twgl.m4.multiply(matriz, modeloPeixe); // Combina as matrizes
-        this.gl.useProgram(this.programInfo.program); // Ativa o shader original   
-        const localTonalidade = this.gl.getAttribLocation(this.programInfo.program, "a_shade");// Impede que as tonalidades da concha afetem o peixe
 
+        // Mantém a posição atual
+        modeloPeixe = twgl.m4.translate(
+            modeloPeixe,
+            this.posicao
+        );
+
+        // Mantém a rotação horizontal
+        modeloPeixe = twgl.m4.rotateY(
+            modeloPeixe,
+            this.rotacao
+        );
+
+        // Mantém a inclinação no eixo X
+        modeloPeixe = twgl.m4.rotateX(
+            modeloPeixe,
+            this.inclinacaoX
+        );
+
+        // Mantém a inclinação no eixo Z
+        modeloPeixe = twgl.m4.rotateZ(
+            modeloPeixe,
+            this.inclinacao
+        );
+
+        // Mantém o tamanho original
+        modeloPeixe = twgl.m4.scale(
+            modeloPeixe,
+            [this.escala, this.escala, this.escala]
+        );
+
+        // Desenha cada parte do peixe com Phong e com emissão nas partes luminosas
         for (const parte of this.buffers) {
 
-            twgl.setBuffersAndAttributes(this.gl, this.programInfo, parte.buffer); // Ativa o buffer
+            desenharObjetoPhong(
+                parte.buffer,
+                modeloPeixe,
+                parte.cor,
+                materiais.peixe,
+                matriz,
+                posicaoCamera,
+                parte.emissao
+            );
+        }
 
-            if (localTonalidade !== -1) {
-                this.gl.disableVertexAttribArray(localTonalidade);
-                this.gl.vertexAttrib1f(localTonalidade, 1.0);
-            }
+        // Restaura o programa original
+        this.gl.useProgram(this.programInfo.program);
 
-            twgl.setUniforms(this.programInfo, {
-                u_matrix: matrizPeixe,
-                u_color: parte.cor
-            });
+        // Evita interferência nos atributos dos outros objetos
+        const localTonalidade = this.gl.getAttribLocation(
+            this.programInfo.program,
+            "a_shade"
+        );
 
-            twgl.drawBufferInfo(this.gl, parte.buffer); // Desenha a parte do peixe
+        if (localTonalidade !== -1) {
+            this.gl.disableVertexAttribArray(localTonalidade);
+            this.gl.vertexAttrib1f(localTonalidade, 1.0);
         }
     }
 }

@@ -10,26 +10,29 @@ html, body {
     padding: 0;
     width: 100%;
     height: 100%;
+    box-sizing: border-box;
 }
 
 body {
     font-family: Arial, sans-serif;
     text-align: center;
 
+    /* Imagem de fundo do diorama */
     background-image: url("./assets/images/fundo_onda_mar2.png");
     background-size: cover;
     background-position: center bottom;
     background-repeat: no-repeat;
 
+    /* Ocupa toda a altura da tela */
     height: 100vh;
     height: 100dvh;
 
+    /* Organiza o título e o diorama verticalmente */
     display: flex;
     flex-direction: column;
     align-items: center;
 
     overflow: hidden;
-    box-sizing: border-box;
 }
 
 
@@ -37,18 +40,24 @@ body {
     2 - IMAGEM DO TÍTULO DO TP2
 **************************************************************************/
 
+header {
+    flex-shrink: 0;
+}
+
 h1 {
     margin: 45px 0 0;
     padding: 0;
-    flex-shrink: 0;
 }
 
 .titulo {
     display: block;
+
     width: 600px;
     max-width: 90vw;
     height: auto;
-    transform: translateY(35px); /* Desce o título */
+
+    /* Desce o título */
+    transform: translateY(35px);
 }
 
 
@@ -63,6 +72,7 @@ h1 {
     flex: 1;
     min-height: 0;
 
+    /* Centraliza o aquário na área principal */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -76,18 +86,24 @@ h1 {
 #canvas {
     display: block;
 
+    /* Tamanho do aquário */
     width: min(950px, 70vw);
     max-height: calc(100dvh - 160px);
     height: auto;
 
+    /* Proporção original */
     aspect-ratio: 4 / 3;
 
+    /* Mantém o canvas transparente */
     border: none;
     background-color: transparent;
     box-shadow: none;
 
+    /* Permite controlar a câmera com o mouse/toque */
     touch-action: none;
-     transform: translateY(95px); /* Desce a cúpula */
+
+    /* Desce a cúpula */
+    transform: translateY(95px);
 }
 
 
@@ -98,28 +114,34 @@ h1 {
 .instrucoes-camera {
     position: absolute;
 
+    /* Posiciona os comandos à esquerda do aquário */
     left: 60px;
     top: 50%;
     transform: translateY(-50%);
 
     width: 320px;
+
     margin: 0;
     padding: 0;
 
+    /* Sem caixa de fundo ou bordas */
     background: none;
     border: none;
     box-shadow: none;
 
+    /* Aparência original dos comandos */
     color: #174c70;
     text-align: left;
     font-family: Arial, sans-serif;
 }
 
-.instrucoes-camera h3 {
+/* Título da seção de comandos */
+.instrucoes-camera h2 {
     font-size: 22px;
     margin: 0 0 15px;
 }
 
+/* Textos das instruções */
 .instrucoes-camera p {
     font-size: 19px;
     line-height: 1.4;
@@ -133,24 +155,43 @@ h1 {
 
 @media (max-width: 1100px) {
 
+    /* Permite rolar a página verticalmente */
     body {
         height: auto;
         min-height: 100dvh;
+
         overflow-x: hidden;
         overflow-y: auto;
     }
 
+    /* Ajusta o espaço acima do título */
+    h1 {
+        margin-top: 20px;
+    }
+
+    /* Remove o deslocamento do título */
+    .titulo {
+        transform: none;
+    }
+
+    /* Organiza os comandos e o aquário verticalmente */
     .area-diorama {
         flex-direction: column;
         gap: 15px;
+
         padding: 15px 0 30px;
     }
 
+    /* Ajusta o aquário à largura da tela */
     #canvas {
         width: min(90vw, 700px);
         max-height: none;
+
+        /* Remove o deslocamento vertical */
+        transform: none;
     }
 
+    /* Centraliza as instruções */
     .instrucoes-camera {
         position: static;
         transform: none;
@@ -159,10 +200,12 @@ h1 {
         text-align: center;
     }
 
-    .instrucoes-camera h3 {
+    /* Título dos comandos */
+    .instrucoes-camera h2 {
         font-size: 20px;
     }
 
+    /* Texto dos comandos */
     .instrucoes-camera p {
         font-size: 15px;
     }

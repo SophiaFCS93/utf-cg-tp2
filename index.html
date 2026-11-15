@@ -1,5 +1,3 @@
-<!-- IDEIA DE DIORAMA: AQUÁRIO -->
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -12,37 +10,62 @@
     <link rel="stylesheet" href="style.css">
 </head>
 
-
 <body>
-    <h1> <img src="assets/images/titulo.png" alt="Paraíso Submerso" class="titulo"></h1>  <!-- TÍTULO DO TP2 -->
 
+    <!-- TÍTULO DO DIORAMA -->
+    <header>
+        <h1>
+            <img
+                src="assets/images/titulo.png"
+                alt="Paraíso Submerso"
+                class="titulo"
+            >
+        </h1>
+    </header>
 
-    <div class="instrucoes-camera">
-        <h3>Comandos 🐚🪸</h3>
-        <p><strong>Tecla 1:</strong> Câmera automática</p>
-        <p><strong>Tecla 2:</strong> Câmera orbital</p>
-        <p><strong>Mouse + arrastar:</strong> Girar a câmera 2</p>
-        <p><strong>Scroll:</strong> Aproximar ou afastar</p>
-        <p><strong>Tecla P:</strong> Alterna as posições do peixinho.</p>
-        <p>🐟 <strong>Inicial:</strong> Nadando no aquário</p>
-        <p>🐟 <strong>P1:</strong> Sou um peixinho curioso!</p>
-        <p>🐟 <strong>P2:</strong> Me encontrem entre as algas!</p>
-        <p>🐟 <strong>P3:</strong> Hora de dormir!</p>
-        <p>🐟 <strong>P4:</strong> Voltar à posição inicial!</p>
+    <main>
 
-    </div>
+        <!-- INSTRUÇÕES DE INTERAÇÃO -->
+        <section class="instrucoes-camera" aria-labelledby="titulo-comandos">
 
+            <h2 id="titulo-comandos">Comandos 🐚🪸</h2>
 
-    <canvas id="canvas"></canvas> <!-- AREA ONDE VAMOS DESENHAR A CENA 3D DO TP2 -->
+            <!-- CONTROLES DAS CÂMERAS -->
+            <p><strong><em>Tecla 1:</em></strong> <em>Câmera automática</em></p>
+            <p><strong><em>Tecla 2:</em></strong> <em>Câmera orbital</em></p>
+            <p><strong><em>Mouse + arrastar:</em></strong> <em>Girar a câmera orbital</em></p>
+            <p><strong><em>Scroll:</em></strong> <em>Aproximar ou afastar</em></p>
 
-    <script src="https://twgljs.org/dist/4.x/twgl-full.min.js"></script> <!-- BIBLIOTECA TWGL.JS, LIBERADA PELO PROFESSOR -->
+            <!-- CONTROLE DO PERSONAGEM -->
+            <p><strong><em>Tecla P:</em></strong> <em>Alternar as posições do peixinho</em></p>
 
+            <p>🐟 <strong><em>Inicial:</em></strong> <em>Nadando no aquário</em></p>
+            <p>🐟 <strong><em>P1:</em></strong> <em>Sou um peixinho curioso!</em></p>
+            <p>🐟 <strong><em>P2:</em></strong> <em>Me encontrem entre as algas!</em></p>
+            <p>🐟 <strong><em>P3:</em></strong> <em>Hora de dormir!</em></p>
+            <p>🐟 <strong><em>P4:</em></strong> <em>Voltar à posição inicial!</em></p>
+
+            <!-- CONTROLE DA ILUMINAÇÃO -->
+            <p><strong><em>Tecla L:</em></strong> <em>Ativar ou desativar a iluminação Phong</em></p>
+
+        </section>
+
+        <!-- CENA 3D DO DIORAMA -->
+        <canvas id="canvas" aria-label="Diorama 3D Paraíso Submerso">
+            Seu navegador não oferece suporte ao elemento canvas.
+        </canvas>
+
+    </main>
+
+    <!-- BIBLIOTECA TWGL.JS -->
+    <script src="https://twgljs.org/dist/4.x/twgl-full.min.js"></script>
+
+    <!-- CLASSE DO PERSONAGEM -->
     <script src="peixe.js"></script>
-    
-    <script src="script.js"></script> <!-- CONECTANDO O CÓDIGO AO JAVA SCRIPT --> 
 
-    
+    <!-- IMPLEMENTAÇÃO DO DIORAMA -->
+    <script src="script.js"></script>
 
-  </body>
+</body>
 
 </html>
