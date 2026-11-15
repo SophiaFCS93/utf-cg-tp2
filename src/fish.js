@@ -1,17 +1,16 @@
-
 /* PARTE 5 - PERSONAGEM: PEIXE  E PARTE 7 - ILUMINAÇÃO PHONG*/
 class Peixe {
 
     constructor(gl, programInfo) {
         this.gl = gl; // Contexto WebGL2
         this.programInfo = programInfo; // Programa de shaders do diorama
-        
-        //AQUI SERIA PARA UMA UNICA POSIÇÃO MAS O PEIXINHO TEM QUE FICAR NA PISIÇÃO INICIAL E MAIS 3 
+
+        // AQUI SERIA PARA UMA UNICA POSIÇÃO MAS O PEIXINHO TEM QUE FICAR NA PISIÇÃO INICIAL E MAIS 3 
         this.escala = 1.0; // Tamanho inicial
 
-        //POSIÇÕES ALTERNATIVAS DO PERSONAGEM
-        //A e rotacaoY faz o peixe virar horizontalmente
-        //A rotacaoZ faz o corpo ficar inclinado
+        // POSIÇÕES ALTERNATIVAS DO PERSONAGEM
+        // A e rotacaoY faz o peixe virar horizontalmente
+        // A rotacaoZ faz o corpo ficar inclinado
         this.posicoes = [
             {
                 nome: "Posição inicial",
@@ -39,8 +38,7 @@ class Peixe {
                 rotacaoZ: -Math.PI / 50
             }
         ];
-       
-        
+
         this.posicaoAtual = 0;
         this.posicao = [...this.posicoes[0].posicao];
         this.rotacao = this.posicoes[0].rotacaoY;
@@ -56,7 +54,6 @@ class Peixe {
     }
 
     /* CARREGA O MODELO 3D E SEUS MATERIAIS */
-
     async carregar() {
 
         try {
@@ -97,7 +94,6 @@ class Peixe {
             }
 
             /* ETAPA 2 - LER OS VÉRTICES E AS FACES DO OBJ */
-
             materialAtual = "padrao";
 
             for (const linha of conteudoOBJ.split(/\r?\n/)) {
@@ -141,7 +137,6 @@ class Peixe {
                 }
             }
 
-
             /* ETAPA 3 - ENCONTRAR O CENTRO DO PEIXE */
             let minX = Infinity, maxX = -Infinity;
             let minY = Infinity, maxY = -Infinity;
@@ -160,8 +155,6 @@ class Peixe {
             const centroY = (minY + maxY) / 2;
             const centroZ = (minZ + maxZ) / 2;
 
-
-
             /* ETAPA 4 - CRIAR OS BUFFERS DOS MATERIAIS */
             this.buffers = [];
 
@@ -174,8 +167,7 @@ class Peixe {
                     posicoes[i] -= centroX;
                     posicoes[i + 1] -= centroY;
                     posicoes[i + 2] -= centroZ;
-                } 
-
+                }
 
                 /* PARTE 7 - LOCALIZAR A BOLINHA LUMINOSA */
                 if (nomeMaterial === "mat12") {
@@ -215,17 +207,11 @@ class Peixe {
                     );
                 }
 
-
-
-
-
                 // Cria um buffer com posições e normais para Phong
                 const buffer = criarBufferPhong(
                     this.gl,
                     posicoes
                 );
-                
-                
 
                 // Obtém a cor original do arquivo MTL
                 const cor = materiais[nomeMaterial] ||
@@ -255,8 +241,6 @@ class Peixe {
                     "Emissão:", emissao
                 );
 
-
-
             }
 
             this.carregado = this.buffers.length > 0;
@@ -270,19 +254,21 @@ class Peixe {
         }
     }
 
-
     /* ATUALIZA O PERSONAGEM */
     atualizar(deltaTime) {
-        
+
         // Futuramente, colocaremos a animação do peixe aqui SERÁ?
     }
 
-    
-    
     /* ALTERNA ENTRE AS TRÊS POSIÇÕES DO PEIXE */
     // COM AJUDA! operador % faz a alternância funcionar continuamente! Assim dá certo!
     alternarPosicao() {
-        this.posicaoAtual = (this.posicaoAtual + 1) % this.posicoes.length;
+        this.irParaPosicao((this.posicaoAtual + 1) % this.posicoes.length);
+    }
+
+    // Vai direto para uma das posições (usado pela tecla P e pelos botões da tela)
+    irParaPosicao(indice) {
+        this.posicaoAtual = indice;
         const novaPosicao = this.posicoes[this.posicaoAtual];
         this.posicao = [...novaPosicao.posicao];
         this.rotacao = novaPosicao.rotacaoY;
@@ -291,60 +277,8 @@ class Peixe {
         this.inclinacaoX = novaPosicao.rotacaoX || 0;
     }
 
-    
-    //PARTE 7 - POSIÇÃO DA LUZ PONTUAL DO PEIXE
-    obterPosicaoLuzMundo() {
-
-        // Aguarda a identificação da bolinha
-        if (!this.posicaoLuzLocal) {
-            return null;
-        }
-
-        // Cria a matriz de modelagem do peixe
-        let modeloPeixe = twgl.m4.identity();
-
-        // Mantém a posição atual do peixe
-        modeloPeixe = twgl.m4.translate(
-            modeloPeixe,
-            this.posicao
-        );
-
-        // Mantém suas rotações
-        modeloPeixe = twgl.m4.rotateY(
-            modeloPeixe,
-            this.rotacao
-        );
-
-        modeloPeixe = twgl.m4.rotateX(
-            modeloPeixe,
-            this.inclinacaoX
-        );
-
-        modeloPeixe = twgl.m4.rotateZ(
-            modeloPeixe,
-            this.inclinacao
-        );
-
-        // Mantém sua escala
-        modeloPeixe = twgl.m4.scale(
-            modeloPeixe,
-            [this.escala, this.escala, this.escala]
-        );
-
-        // Converte a posição da bolinha
-        // para as coordenadas do mundo 3D
-        return twgl.m4.transformPoint(
-            modeloPeixe,
-            this.posicaoLuzLocal
-        );
-    }
-
-
-    /* DESENHA O PEIXE NO DIORAMA */
-    desenhar(matriz, posicaoCamera) {
-
-        // Aguarda o carregamento do modelo OBJ e seus materiais
-        if (!this.carregado) return;
+    /* MATRIZ DE MODELAGEM DO PEIXE (posição, rotações e escala atuais) */
+    calcularMatrizModelo() {
 
         // Cria a matriz de modelagem do peixe
         let modeloPeixe = twgl.m4.identity();
@@ -379,6 +313,34 @@ class Peixe {
             [this.escala, this.escala, this.escala]
         );
 
+        return modeloPeixe;
+    }
+
+    //PARTE 7 - POSIÇÃO DA LUZ PONTUAL DO PEIXE
+    obterPosicaoLuzMundo() {
+
+        // Aguarda a identificação da bolinha
+        if (!this.posicaoLuzLocal) {
+            return null;
+        }
+
+        // Converte a posição da bolinha
+        // para as coordenadas do mundo 3D
+        return twgl.m4.transformPoint(
+            this.calcularMatrizModelo(),
+            this.posicaoLuzLocal
+        );
+    }
+
+    /* DESENHA O PEIXE NO DIORAMA */
+    desenhar(matriz, posicaoCamera) {
+
+        // Aguarda o carregamento do modelo OBJ e seus materiais
+        if (!this.carregado) return;
+
+        // Cria a matriz de modelagem do peixe
+        let modeloPeixe = this.calcularMatrizModelo();
+
         // Desenha cada parte do peixe com Phong e com emissão nas partes luminosas
         for (const parte of this.buffers) {
 
@@ -392,19 +354,10 @@ class Peixe {
                 parte.emissao
             );
         }
-
-        // Restaura o programa original
-        this.gl.useProgram(this.programInfo.program);
-
-        // Evita interferência nos atributos dos outros objetos
-        const localTonalidade = this.gl.getAttribLocation(
-            this.programInfo.program,
-            "a_shade"
-        );
-
-        if (localTonalidade !== -1) {
-            this.gl.disableVertexAttribArray(localTonalidade);
-            this.gl.vertexAttrib1f(localTonalidade, 1.0);
-        }
     }
 }
+
+/* PARTE 5 - PERSONAGEM */
+const peixe = new Peixe(gl, programInfo);
+peixe.carregar();
+let posicaoLuzPeixe = null; // Posição da luz amarela no mundo 3D

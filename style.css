@@ -1,16 +1,17 @@
-
 /* IDEIA DE DIORAMA: AQUÁRIO */
 
 /*************************************************************************
     1 - CORPO INICIAL DO TP2 - IMAGEM DE FUNDO
 **************************************************************************/
 
-html, body {
+html,
+body {
     margin: 0;
     padding: 0;
     width: 100%;
     height: 100%;
     box-sizing: border-box;
+    overflow: hidden;
 }
 
 body {
@@ -35,7 +36,33 @@ body {
     overflow: hidden;
 }
 
+/*************************************************************************
+    1.1 - BOLHAS NO FUNDO (canvas 2D desenhado por src/bubbles.js)
+**************************************************************************/
 
+.bolhas {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.bolhas span {
+    position: absolute;
+    bottom: -60px;              /* começa abaixo da tela */
+    left: var(--x);             /* posição horizontal, em % da tela */
+    width: var(--tam);
+    height: var(--tam);
+    border-radius: 50%;         /* transforma o quadrado em círculo */
+    background: rgba(255, 255, 255, 0.25);
+    border: 2px solid rgba(23, 76, 112, 0.28);
+    animation: subir var(--tempo) linear var(--atraso) infinite;
+}
+
+@keyframes subir {
+    to { transform: translateY(-120vh); }   /* sobe até passar do topo, e repete */
+}
 /*************************************************************************
     2 - IMAGEM DO TÍTULO DO TP2
 **************************************************************************/
@@ -52,14 +79,16 @@ h1 {
 .titulo {
     display: block;
 
-    width: 600px;
+    position: absolute;
+    top: 20px;
+    left: 60px;
+
+    width: 400px;
     max-width: 90vw;
     height: auto;
 
-    /* Desce o título */
-    transform: translateY(35px);
+    transform: none;
 }
-
 
 /*************************************************************************
     3 - ÁREA PRINCIPAL DO DIORAMA
@@ -78,7 +107,6 @@ h1 {
     align-items: center;
 }
 
-
 /*************************************************************************
     4 - CANVAS DO AQUÁRIO
 **************************************************************************/
@@ -86,26 +114,29 @@ h1 {
 #canvas {
     display: block;
 
-    /* Tamanho do aquário */
-    width: min(950px, 70vw);
-    max-height: calc(100dvh - 160px);
-    height: auto;
+    /* Ocupa a tela inteira */
+    position: fixed;
+    top: 0;
+    left: 0;
 
-    /* Proporção original */
-    aspect-ratio: 4 / 3;
+    width: 100vw;
+    height: 100dvh;
 
-    /* Mantém o canvas transparente */
+    max-width: none;
+    max-height: none;
+
+    /* Remove limitações anteriores */
+    aspect-ratio: auto;
+    transform: none;
+
     border: none;
     background-color: transparent;
     box-shadow: none;
 
-    /* Permite controlar a câmera com o mouse/toque */
     touch-action: none;
 
-    /* Desce a cúpula */
-    transform: translateY(95px);
+    z-index: 0;
 }
-
 
 /*************************************************************************
     5 - COMANDOS ESCRITOS NA TELA
@@ -116,7 +147,7 @@ h1 {
 
     /* Posiciona os comandos à esquerda do aquário */
     left: 60px;
-    top: 50%;
+    top: 40%;
     transform: translateY(-50%);
 
     width: 320px;
@@ -133,21 +164,65 @@ h1 {
     color: #174c70;
     text-align: left;
     font-family: Arial, sans-serif;
+
+    z-index: 1;
 }
 
 /* Título da seção de comandos */
 .instrucoes-camera h2 {
-    font-size: 22px;
+    font-size: 20px;
     margin: 0 0 15px;
+    padding: 0 14px;
 }
 
 /* Textos das instruções */
 .instrucoes-camera p {
-    font-size: 19px;
+    font-size: 15px;
     line-height: 1.4;
-    margin: 12px 0;
+    margin: 6px 0;
+    padding: 6px 12px;
 }
 
+/* Botões clicáveis: mesma aparência dos textos, com destaque ao passar o mouse e no item ativo */
+.instrucoes-camera .comando {
+    pointer-events: auto;
+
+    display: block;
+    width: 100%;
+    margin: 6px 0;
+    padding: 6px 12px;
+
+    background: transparent;
+    border: 2px solid transparent;
+    border-radius: 12px;
+
+    color: inherit;
+    font-family: inherit;
+    font-size: 15px;
+    line-height: 1.4;
+    text-align: left;
+    cursor: pointer;
+
+    transition: background-color 0.15s, border-color 0.15s;
+}
+
+.instrucoes-camera .comando:hover {
+    background-color: rgba(255, 255, 255, 0.35);
+}
+
+.instrucoes-camera .comando:focus-visible {
+    outline: 2px solid #174c70;
+}
+
+/* Comando que está ligado/selecionado no momento */
+.instrucoes-camera .comando.ativo {
+    background-color: rgba(255, 255, 255, 0.55);
+    border-color: #174c70;
+}
+
+.instrucoes-camera .comando:active {
+    transform: scale(0.98);
+}
 
 /*************************************************************************
     6 - AJUSTES PARA TELAS MENORES
@@ -198,6 +273,8 @@ h1 {
 
         width: min(90%, 400px);
         text-align: center;
+
+        z-index: 1;
     }
 
     /* Título dos comandos */
@@ -208,5 +285,16 @@ h1 {
     /* Texto dos comandos */
     .instrucoes-camera p {
         font-size: 15px;
+    }
+
+    /* Botões dos comandos */
+    .instrucoes-camera .comando {
+        font-size: 15px;
+        text-align: center;
+    }
+
+    .instrucoes-camera .comando.pose {
+        width: 100%;
+        margin-left: 0;
     }
 }

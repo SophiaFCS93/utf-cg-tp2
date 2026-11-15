@@ -15,38 +15,55 @@
     <!-- TÍTULO DO DIORAMA -->
     <header>
         <h1>
-            <img
-                src="assets/images/titulo.png"
-                alt="Paraíso Submerso"
-                class="titulo"
-            >
+            <img src="assets/images/titulo.png" alt="Paraíso Submerso" class="titulo">
         </h1>
     </header>
 
     <main>
+        <!-- FUNDO COM BOLHAS SUBINDO
+        --x: onde a bolha fica na horizontal
+        --tam: tamanho
+        --tempo: quantos segundos ela leva para subir
+        --atraso: negativo faz a bolha comeca no meio da tela -->
+        <div class="bolhas">
+            <span style="--x:5%;  --tam:14px; --tempo:9s;  --atraso:-2s"></span>
+            <span style="--x:15%; --tam:26px; --tempo:12s; --atraso:-7s"></span>
+            <span style="--x:25%; --tam:10px; --tempo:8s;  --atraso:-4s"></span>
+            <span style="--x:35%; --tam:20px; --tempo:11s; --atraso:-9s"></span>
+            <span style="--x:45%; --tam:12px; --tempo:7s;  --atraso:-1s"></span>
+            <span style="--x:55%; --tam:30px; --tempo:14s; --atraso:-5s"></span>
+            <span style="--x:65%; --tam:16px; --tempo:10s; --atraso:-8s"></span>
+            <span style="--x:75%; --tam:22px; --tempo:13s; --atraso:-3s"></span>
+            <span style="--x:85%; --tam:11px; --tempo:8s;  --atraso:-6s"></span>
+            <span style="--x:95%; --tam:18px; --tempo:11s; --atraso:-10s"></span>
+        </div>
 
         <!-- INSTRUÇÕES DE INTERAÇÃO -->
         <section class="instrucoes-camera" aria-labelledby="titulo-comandos">
 
             <h2 id="titulo-comandos">Comandos 🐚🪸</h2>
 
-            <!-- CONTROLES DAS CÂMERAS -->
-            <p><strong><em>Tecla 1:</em></strong> <em>Câmera automática</em></p>
-            <p><strong><em>Tecla 2:</em></strong> <em>Câmera orbital</em></p>
+            <!-- CONTROLES DAS CÂMERAS (clicáveis ou pelo teclado) -->
+            <button type="button" class="comando" data-acao="camera" data-valor="1"><strong><em>Tecla 1:</em></strong>
+                <em>Câmera automática</em></button>
+            <button type="button" class="comando" data-acao="camera" data-valor="2"><strong><em>Tecla 2:</em></strong>
+                <em>Câmera orbital</em></button>
             <p><strong><em>Mouse + arrastar:</em></strong> <em>Girar a câmera orbital</em></p>
             <p><strong><em>Scroll:</em></strong> <em>Aproximar ou afastar</em></p>
 
             <!-- CONTROLE DO PERSONAGEM -->
-            <p><strong><em>Tecla P:</em></strong> <em>Alternar as posições do peixinho</em></p>
+            <button type="button" class="comando" data-acao="alternar-peixe"><strong><em>Tecla P:</em></strong>
+                <em>Alternar as posições do peixinho</em></button>
 
-            <p>🐟 <strong><em>Inicial:</em></strong> <em>Nadando no aquário</em></p>
-            <p>🐟 <strong><em>P1:</em></strong> <em>Sou um peixinho curioso!</em></p>
-            <p>🐟 <strong><em>P2:</em></strong> <em>Me encontrem entre as algas!</em></p>
-            <p>🐟 <strong><em>P3:</em></strong> <em>Hora de dormir!</em></p>
-            <p>🐟 <strong><em>P4:</em></strong> <em>Voltar à posição inicial!</em></p>
+            <!-- <button type="button" class="comando pose" data-acao="pose" data-valor="0">🐟 <strong><em>Inicial:</em></strong> <em>Nadando no aquário</em></button>
+            <button type="button" class="comando pose" data-acao="pose" data-valor="1">🐟 <strong><em>P1:</em></strong> <em>Sou um peixinho curioso!</em></button>
+            <button type="button" class="comando pose" data-acao="pose" data-valor="2">🐟 <strong><em>P2:</em></strong> <em>Me encontrem entre as algas!</em></button>
+            <button type="button" class="comando pose" data-acao="pose" data-valor="3">🐟 <strong><em>P3:</em></strong> <em>Hora de dormir!</em></button>
+            <button type="button" class="comando pose" data-acao="pose" data-valor="0" data-sem-destaque>🐟 <strong><em>P4:</em></strong> <em>Voltar à posição inicial!</em></button> -->
 
             <!-- CONTROLE DA ILUMINAÇÃO -->
-            <p><strong><em>Tecla L:</em></strong> <em>Ativar ou desativar a iluminação Phong</em></p>
+            <button type="button" class="comando" data-acao="iluminacao"><strong><em>Tecla L:</em></strong> <em>Ativar
+                    ou desativar a iluminação Phong</em></button>
 
         </section>
 
@@ -60,11 +77,39 @@
     <!-- BIBLIOTECA TWGL.JS -->
     <script src="https://twgljs.org/dist/4.x/twgl-full.min.js"></script>
 
-    <!-- CLASSE DO PERSONAGEM -->
-    <script src="peixe.js"></script>
+    <!-- ORDEM IMPORTANTE: são scripts clássicos que compartilham o escopo global.
+         shaders.js cria o contexto WebGL (gl) e precisa vir primeiro; o main.js (que inicia o loop)
+         é sempre o último; a cúpula (dome.js) é desenhada por último dentro do loop. -->
 
-    <!-- IMPLEMENTAÇÃO DO DIORAMA -->
-    <script src="script.js"></script>
+    <!-- BASE: contexto WebGL, shaders, iluminação/normais e carregador de OBJ -->
+    <script src="src/shaders.js"></script>
+    <script src="src/lighting.js"></script>
+    <script src="src/objLoader.js"></script>
+
+    <!-- GEOMETRIAS (chão e hemisfério) E CÂMERAS -->
+    <script src="src/geometry.js"></script>
+    <script src="src/camera.js"></script>
+
+    <!-- PERSONAGEM -->
+    <script src="src/fish.js"></script>
+
+    <!-- CENÁRIO: modelos .obj e lista de objetos -->
+    <script src="src/scenery.js"></script>
+
+    <!-- ENTRADA DO USUÁRIO (teclado) -->
+    <script src="src/input.js"></script>
+
+    <!-- OBJETO HIERÁRQUICO (a implementar) -->
+    <script src="src/windmill.js"></script>
+
+    <!-- FUNDO COM BOLHAS (independente do resto da cena) -->
+    <script src="src/bubbles.js"></script>
+
+    <!-- CÚPULA TRANSPARENTE -->
+    <script src="src/dome.js"></script>
+
+    <!-- INICIALIZAÇÃO + LOOP DE DESENHO (sempre por último) -->
+    <script src="src/main.js"></script>
 
 </body>
 
