@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>TP2 - Paraíso Submerso</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- TÍTULO DO DIORAMA -->
+    <header>
+        <h1>
+            <img src="assets/images/titulo.png" alt="Paraíso Submerso" class="titulo">
+        </h1>
+    </header>
+
+    <main>
+        <!-- FUNDO COM BOLHAS SUBINDO
+        --x: onde a bolha fica na horizontal
+        --tam: tamanho
+        --tempo: quantos segundos ela leva para subir
+        --atraso: negativo faz a bolha comeca no meio da tela -->
+        <div class="bolhas">
+            <span style="--x:3%;  --tam:12px; --tempo:8s;  --atraso:-3s"></span>
+            <span style="--x:9%;  --tam:25px; --tempo:15s; --atraso:-11s"></span>
+            <span style="--x:17%; --tam:8px;  --tempo:10s; --atraso:-5s"></span>
+            <span style="--x:23%; --tam:19px; --tempo:7s;  --atraso:-2s"></span>
+            <span style="--x:31%; --tam:32px; --tempo:17s; --atraso:-13s"></span>
+            <span style="--x:38%; --tam:14px; --tempo:9s;  --atraso:-6s"></span>
+            <span style="--x:44%; --tam:22px; --tempo:12s; --atraso:-9s"></span>
+            <span style="--x:51%; --tam:10px; --tempo:6s;  --atraso:-1s"></span>
+            <span style="--x:58%; --tam:28px; --tempo:14s; --atraso:-10s"></span>
+            <span style="--x:64%; --tam:16px; --tempo:11s; --atraso:-4s"></span>
+            <span style="--x:71%; --tam:35px; --tempo:18s; --atraso:-15s"></span>
+            <span style="--x:77%; --tam:9px;  --tempo:7s;  --atraso:-3s"></span>
+            <span style="--x:83%; --tam:21px; --tempo:13s; --atraso:-8s"></span>
+            <span style="--x:89%; --tam:13px; --tempo:9s;  --atraso:-12s"></span>
+            <span style="--x:96%; --tam:27px; --tempo:16s; --atraso:-7s"></span>
+            <span style="--x:6%;  --tam:18px; --tempo:12s; --atraso:-14s"></span>
+            <span style="--x:21%; --tam:30px; --tempo:19s; --atraso:-6s"></span>
+            <span style="--x:36%; --tam:11px; --tempo:8s;  --atraso:-10s"></span>
+            <span style="--x:53%; --tam:24px; --tempo:15s; --atraso:-2s"></span>
+            <span style="--x:68%; --tam:7px;  --tempo:6s;  --atraso:-4s"></span>
+            <span style="--x:81%; --tam:17px; --tempo:10s; --atraso:-9s"></span>
+            <span style="--x:93%; --tam:31px; --tempo:17s; --atraso:-12s"></span>
+        </div>
+
+        <!-- INSTRUÇÕES DE INTERAÇÃO -->
+        <section class="instrucoes-camera" aria-labelledby="titulo-comandos">
+
+            <h2 id="titulo-comandos">Comandos 🐚🪸</h2>
+
+            <!-- CONTROLES DAS CÂMERAS (clicáveis ou pelo teclado) -->
+            <button type="button" class="comando" data-acao="camera" data-valor="1"><strong><em>Tecla 1:</em></strong>
+                <em>Câmera automática</em></button>
+            <button type="button" class="comando" data-acao="camera" data-valor="2"><strong><em>Tecla 2:</em></strong>
+                <em>Câmera orbital</em></button>
+            <p><strong><em>Mouse + arrastar:</em></strong> <em>Girar a câmera orbital</em></p>
+            <p><strong><em>Scroll:</em></strong> <em>Aproximar ou afastar</em></p>
+
+            <!-- CONTROLE DO PERSONAGEM -->
+            <button type="button" class="comando" data-acao="alternar-peixe"><strong><em>Tecla P:</em></strong>
+                <em>Alternar as posições do peixinho</em></button>
+
+            <!-- CONTROLE DA MÚSICA -->
+            <button type="button" class="comando" data-acao="musica"><strong><em>Tecla M:</em></strong> <em>Ligar ou
+                    desligar a música</em></button>
+
+            <!-- CONTROLE DA ILUMINAÇÃO -->
+            <button type="button" class="comando" data-acao="iluminacao"><strong><em>Tecla L:</em></strong> <em>Ativar
+                    ou desativar a iluminação Phong</em></button>
+
+        </section>
+
+        <!-- CENA 3D DO DIORAMA -->
+        <canvas id="canvas" aria-label="Diorama 3D Paraíso Submerso">
+            Seu navegador não oferece suporte ao elemento canvas.
+        </canvas>
+
+    </main>
+
+    <!-- BIBLIOTECA TWGL.JS -->
+    <script src="https://twgljs.org/dist/4.x/twgl-full.min.js"></script>
+
+    <!-- BASE: contexto WebGL, shaders, iluminação/normais e carregador de OBJ -->
+    <script src="src/shaders.js"></script>
+    <script src="src/lighting.js"></script>
+    <script src="src/objLoader.js"></script>
+
+    <!-- GEOMETRIAS (chão e hemisfério) E CÂMERAS -->
+    <script src="src/geometry.js"></script>
+    <script src="src/camera.js"></script>
+
+    <!-- PERSONAGEM -->
+    <script src="src/fish.js"></script>
+
+    <!-- CENÁRIO: modelos .obj e lista de objetos -->
+    <script src="src/scenery.js"></script>
+
+    <!-- ENTRADA DO USUÁRIO (teclado) -->
+    <script src="src/input.js"></script>
+
+    <!-- CÚPULA TRANSPARENTE -->
+    <script src="src/dome.js"></script>
+
+    <!-- BAU -->
+    <script src="src/bau.js"></script>
+
+    <!-- INICIALIZAÇÃO + LOOP DE DESENHO (sempre por último) -->
+    <script src="src/main.js"></script>
+
+</body>
+
+</html>
